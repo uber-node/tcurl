@@ -7,6 +7,9 @@
   "repository": "git://github.com/uber/tcurl.git",
   "main": "index.js",
   "homepage": "https://github.com/uber/tcurl",
+  "bin": {
+    "tcurl": "./index.js"
+  },
   "bugs": {
     "url": "https://github.com/uber/tcurl/issues",
     "email": "raynos2@gmail.com"
@@ -17,6 +20,11 @@
     }
   ],
   "dependencies": {
+    "minimist": "^1.1.0",
+    "tchannel": "git+ssh://gitolite@code.uber.internal:github/uber/tchannel#v2",
+    "my-local-ip": "^1.0.0",
+    "process": "^0.10.0",
+    "debug-logtron": "^2.1.0"
   },
   "devDependencies": {
     "coveralls": "^2.10.0",

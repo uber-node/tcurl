@@ -10,39 +10,16 @@
 
 A command line utility to talk to a tchannel server
 
-## Example
-
-```js
-var tcurl = require("tcurl");
-
-// TODO. Show example
 ```
+tcurl [options] host:port
 
-## Concept and Motivation
-
-// TODO. Explain what your module achieves and why.
-
-## API Documentation
-
-### `var someValue = tcurl(/*arguments*/)`
-
-<!--
-  This is a jsig notation of your interface.
-  https://github.com/jsigbiz/spec
--->
-```ocaml
-tcurl : (arg: Any) => void
+   Options:
+     -d [data] send a body
 ```
-
-// TODO. State what the module does.
 
 ## Installation
 
 `npm install tcurl`
-
-## Tests
-
-`npm test`
 
 ## NPM scripts
 
