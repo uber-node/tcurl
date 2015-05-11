@@ -21,3 +21,4 @@
 'use strict';
 
 require('./tcurl.js');
+require('./as-json.js');

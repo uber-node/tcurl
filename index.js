@@ -19,6 +19,7 @@
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
+
 'use strict';
 
 var TChannel = require('tchannel');
@@ -37,7 +38,7 @@ var path = require('path');
 var url = require('url');
 var assert = require('assert');
 
-module.exports = main;
+module.exports = tcurl;
 
 if (require.main === module) {
     main(minimist(process.argv.slice(2)));
@@ -63,6 +64,7 @@ function parseArgs(argv) {
 
     var uri = argv.p || argv.peer;
     var thrift = argv.t || argv.thrift;
+    var json = argv.j || argv.J;
     var service = argv._[0];
     var endpoint = argv._[1];
     var parsedUri = url.parse('tchannel://' + uri);
@@ -83,7 +85,9 @@ function parseArgs(argv) {
         endpoint: endpoint,
         hostname: parsedUri.hostname,
         port: parsedUri.port,
-        thrift: thrift
+        thrift: thrift,
+        json: json,
+        depth: argv.depth
     };
 }
 
@@ -94,7 +98,10 @@ function main(argv) {
     }
 
     var opts = parseArgs(argv);
+    tcurl(opts);
+}
 
+function tcurl(opts) {
     var spec;
     if (opts.thrift) {
         var specs = {};
@@ -104,7 +111,8 @@ function main(argv) {
             if (match) {
                 var serviceName = match[1];
                 var fileName = match[0];
-                specs[serviceName] = thriftify.readSpecSync(path.join(opts.thrift, fileName));
+                specs[serviceName] =
+                    thriftify.readSpecSync(path.join(opts.thrift, fileName));
             }
         });
 
@@ -135,10 +143,17 @@ function main(argv) {
         } else {
             sender = new TChannelAsJSON();
         }
-        sender.send(request, opts.endpoint, opts.head, opts.body, onResponse);
+        sender.send(request, opts.endpoint, opts.head,
+            opts.body, onResponse);
     }
 
     function onResponse(err, resp) {
+        if (opts.onResponse) {
+            opts.onResponse(err, resp);
+            client.quit();
+            return;
+        }
+
         if (err) {
             console.error(err);
             console.error(err.message);
@@ -157,11 +172,11 @@ function main(argv) {
     }
 
     function display(level, value) {
-        if (argv.j || argv.J) {
-            log(level, JSON.stringify(value, null, argv.J));
+        if (opts.json) {
+            log(level, JSON.stringify(value, null, opts.json));
         } else {
             log(level, util.inspect(value, {
-                depth: argv.depth || 2
+                depth: opts.depth || 2
             }));
         }
     }
@@ -175,3 +190,4 @@ function main(argv) {
     }
 }
 
+module.exports = tcurl;

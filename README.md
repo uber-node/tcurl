@@ -11,10 +11,15 @@
 A command line utility to talk to a tchannel server
 
 ```
-tcurl [options] host:port
+tcurl -p host:port <service> <endpoint> [options]
 
-   Options:
-     -d [data] send a body
+  Options:
+    -2 [data] send an arg2 blob
+    -3 [data] send an arg3 blob
+    --depth=n configure inspect printing depth
+    -j print JSON
+    -J [indent] print JSON with indentation
+    -t [dir] directory containing Thrift files
 ```
 
 ## Installation
@@ -34,6 +39,7 @@ tcurl [options] host:port
 ## Contributors
 
  - Raynos
+ - ShanniLi
 
 ## MIT Licenced
 
