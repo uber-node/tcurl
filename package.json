@@ -1,6 +1,6 @@
 {
   "name": "tcurl",
-  "version": "2.0.0",
+  "version": "3.0.0",
   "description": "A command line utility to talk to a tchannel server",
   "keywords": [],
   "author": "Raynos <raynos2@gmail.com>",
