@@ -189,5 +189,3 @@ function tcurl(opts) {
         }
     }
 }
-
-module.exports = tcurl;
