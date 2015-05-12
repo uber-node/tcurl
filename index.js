@@ -142,6 +142,14 @@ function tcurl(opts) {
             sender = new TChannelAsThrift({spec: spec});
         } else {
             sender = new TChannelAsJSON();
+
+            if (opts.body) {
+                opts.body = JSON.parse(opts.body);
+            }
+            if (opts.head) {
+                opts.head = JSON.parse(opts.head);
+            }
+    
         }
         sender.send(request, opts.endpoint, opts.head,
             opts.body, onResponse);
