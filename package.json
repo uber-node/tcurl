@@ -8,7 +8,7 @@
   "main": "index.js",
   "homepage": "https://github.com/uber/tcurl",
   "bin": {
-    "tcurl": "./index.js"
+    "tcurl": "index.js"
   },
   "bugs": {
     "url": "https://github.com/uber/tcurl/issues",
@@ -20,11 +20,12 @@
     }
   ],
   "dependencies": {
-    "minimist": "^1.1.0",
-    "tchannel": "git+ssh://gitolite@code.uber.internal:github/uber/tchannel#v2",
+    "debug-logtron": "^3.2.0",
+    "minimist": "^1.1.1",
     "my-local-ip": "^1.0.0",
-    "process": "^0.10.0",
-    "debug-logtron": "^2.1.0"
+    "process": "^0.11.0",
+    "tchannel": "2.0.0-beta18",
+    "thriftify": "1.0.0-alpha13"
   },
   "devDependencies": {
     "coveralls": "^2.10.0",
@@ -34,7 +35,8 @@
     "opn": "^1.0.1",
     "pre-commit": "0.0.9",
     "tape": "^3.4.0",
-    "uber-licence": "1.5.1"
+    "uber-licence": "1.5.1",
+    "uber-standard": "3.6.4"
   },
   "licenses": [
     {
@@ -48,7 +50,7 @@
     "check-licence": "uber-licence --dry",
     "check-ls": "npm ls 1>/dev/null",
     "cover": "npm run test-cover -s && npm run check-cover -s",
-    "lint": "lint-trap .",
+    "lint": "standard -v",
     "test": "npm run check-ls -s && npm run lint -s && npm run cover -s",
     "test-cover": "istanbul cover --report html --print detail -- test/index.js",
     "trace": "itape test/index.js --trace",

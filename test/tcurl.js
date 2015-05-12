@@ -28,5 +28,3 @@ test('tcurl is a function', function t(assert) {
     assert.equal(typeof tcurl, 'function');
     assert.end();
 });
-
-

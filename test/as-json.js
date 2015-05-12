@@ -91,5 +91,3 @@ test('getting an ok response', function t(assert) {
         }
     }
 });
-
-
