@@ -38,7 +38,7 @@ var path = require('path');
 var url = require('url');
 var assert = require('assert');
 
-module.exports = tcurl;
+module.exports = main;
 
 if (require.main === module) {
     main(minimist(process.argv.slice(2)));
