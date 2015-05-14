@@ -97,13 +97,14 @@ function parseArgs(argv) {
     };
 }
 
-function main(argv) {
+function main(argv, onResponse) {
     /*eslint no-console: 0 */
     if (argv.h || argv.help || argv._.length === 0) {
         return help();
     }
 
     var opts = parseArgs(argv);
+    opts.onResponse = onResponse;
     tcurl(opts);
 }
 
