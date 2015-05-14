@@ -38,10 +38,16 @@ var path = require('path');
 var url = require('url');
 var assert = require('assert');
 
+main.exec = execMain;
+
 module.exports = main;
 
 if (require.main === module) {
     main(minimist(process.argv.slice(2)));
+}
+
+function execMain(str, cb) {
+    main(minimist(str), cb);
 }
 
 function help() {
