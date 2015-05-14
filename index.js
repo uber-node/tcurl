@@ -149,7 +149,6 @@ function tcurl(opts) {
             if (opts.head) {
                 opts.head = JSON.parse(opts.head);
             }
-    
         }
         sender.send(request, opts.endpoint, opts.head,
             opts.body, onResponse);
