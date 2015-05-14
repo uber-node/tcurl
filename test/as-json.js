@@ -48,7 +48,7 @@ test('getting an ok response', function t(assert) {
         isOptions: true
     };
 
-    var hostname = 'localhost';
+    var hostname = '127.0.0.1';
     var port = 4040;
     var endpoint = 'echo';
     var head = {some: 'echo-head'};
@@ -60,16 +60,16 @@ test('getting an ok response', function t(assert) {
 
     server.listen(port, hostname, onListening);
     function onListening() {
-        tcurl({
-            hostname: hostname,
-            port: port,
-            head: head,
-            endpoint: endpoint,
-            service: serviceName,
-            body: body,
-            json: true,
-            onResponse: onResponse
-        });
+        var cmd = [
+            '-p', hostname + ':' + port,
+            serviceName,
+            endpoint,
+            '-2', JSON.stringify(head),
+            '-3', JSON.stringify(body),
+            '-J'
+        ];
+
+        tcurl.exec(cmd, onResponse);
 
         function onResponse(err, resp) {
             assert.ifError(err);
