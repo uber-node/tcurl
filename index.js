@@ -43,11 +43,15 @@ main.exec = execMain;
 module.exports = main;
 
 if (require.main === module) {
-    main(minimist(process.argv.slice(2)));
+    main(minimist(process.argv.slice(2), {
+        boolean: ['raw']
+    }));
 }
 
 function execMain(str, cb) {
-    main(minimist(str), cb);
+    main(minimist(str, {
+        boolean: ['raw']
+    }), cb);
 }
 
 function help() {
@@ -61,6 +65,7 @@ function help() {
     console.log('    -j print JSON');
     console.log('    -J [indent] print JSON with indentation');
     console.log('    -t [dir] directory containing Thrift files');
+    console.log('    --raw encode arg2 & arg3 raw');
     return;
 }
 
@@ -93,6 +98,7 @@ function parseArgs(argv) {
         port: parsedUri.port,
         thrift: thrift,
         json: json,
+        raw: argv.raw,
         depth: argv.depth
     };
 }
@@ -147,6 +153,11 @@ function tcurl(opts) {
         var sender;
         if (opts.thrift) {
             sender = new TChannelAsThrift({spec: spec});
+            sender.send(request, opts.endpoint, opts.head,
+                opts.body, onResponse);
+        } else if (opts.raw) {
+            request.send(opts.endpoint, opts.head, opts.body,
+                onResponse);
         } else {
             sender = new TChannelAsJSON();
 
@@ -156,14 +167,21 @@ function tcurl(opts) {
             if (opts.head) {
                 opts.head = JSON.parse(opts.head);
             }
+            sender.send(request, opts.endpoint, opts.head,
+                opts.body, onResponse);
         }
-        sender.send(request, opts.endpoint, opts.head,
-            opts.body, onResponse);
     }
 
-    function onResponse(err, resp) {
+    function onResponse(err, resp, arg2, arg3) {
+        if (arg2 && resp) {
+            resp.head = arg2;
+        }
+        if (arg3 && resp) {
+            resp.body = arg3;
+        }
+
         if (opts.onResponse) {
-            opts.onResponse(err, resp);
+            opts.onResponse(err, resp, arg2, arg3);
             client.quit();
             return;
         }
@@ -188,6 +206,8 @@ function tcurl(opts) {
     function display(level, value) {
         if (opts.json) {
             log(level, JSON.stringify(value, null, opts.json));
+        } else if (opts.raw) {
+            log(level, String(value));
         } else {
             log(level, util.inspect(value, {
                 depth: opts.depth || 2
