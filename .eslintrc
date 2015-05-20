@@ -1,5 +1,6 @@
 {
     "rules": {
-        "max-params": [2, 5]
+        "max-params": [2, 5],
+        "max-statements": [2, 25]
     }
 }
