@@ -145,6 +145,16 @@ function tcurl(opts) {
     function onListen() {
         client.removeListener('listening', onListen);
 
+        client.waitForIdentified({
+            host: opts.hostname + ':' + opts.port
+        }, onIdentified);
+    }
+
+    function onIdentified(err) {
+        if (err) {
+            return onResponse(err);
+        }
+
         var request = client.request({
             host: opts.hostname + ':' + opts.port,
             timeout: opts.timeout || 5000,
