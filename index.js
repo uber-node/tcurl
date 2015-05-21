@@ -162,6 +162,10 @@ function tcurl(opts) {
         });
         var sender;
         if (opts.thrift) {
+            if (opts.body) {
+                opts.body = JSON.parse(opts.body);
+            }
+
             sender = new TChannelAsThrift({spec: spec});
             sender.send(request, opts.endpoint, opts.head,
                 opts.body, onResponse);
