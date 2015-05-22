@@ -37,8 +37,7 @@ var path = require('path');
 var url = require('url');
 var assert = require('assert');
 
-var log = require('./log');
-var display = log.display;
+var Logger = require('./log');
 
 main.exec = execMain;
 
@@ -117,7 +116,7 @@ function main(argv, onResponse) {
 }
 
 function tcurl(opts) {
-    log.setup(opts);
+    var logger = Logger(opts);
     var spec;
     if (opts.thrift) {
         var specs = {};
@@ -204,22 +203,22 @@ function tcurl(opts) {
         }
 
         if (err) {
-            display('error', err);
-            display('error', err.message);
+            logger.log('error', err);
+            logger.log('error', err.message);
             /*eslint no-process-exit: 0*/
             process.exit(1);
         }
 
         if (!resp.ok) {
-            display('error', 'Got call response not ok');
-            display('error', resp.body);
+            logger.log('error', 'Got call response not ok');
+            logger.log('error', resp.body);
             process.exit(1);
         } else {
-            display('log', 'Got call response ok');
+            logger.display('log', 'Got call response ok');
         }
 
         if (resp.body) {
-            display('log', resp.body);
+            logger.display('log', resp.body);
         }
         client.quit();
     }

@@ -24,31 +24,34 @@
 
 var console = require('console');
 var util = require('util');
-module.exports.display = display;
-module.exports.setup = setup;
+module.exports = Logger;
 
-var options = null;
+function Logger(options) {
+    if (!(this instanceof Logger)) {
+        return new Logger(options);
+    }
 
-function setup(opts) {
-    options = opts;
+    var self = this;
+    self.options = options;
 }
 
-function display(level, value) {
-    if (options.json) {
-        log(level, JSON.stringify(value, null, options.json));
-    } else if (options.raw) {
-        log(level, String(value));
+Logger.prototype.display = function display(level, value) {
+    var self = this;
+    if (self.options.json) {
+        self.log(level, JSON.stringify(value, null, self.options.json));
+    } else if (self.options.raw) {
+        self.log(level, String(value));
     } else {
-        log(level, util.inspect(value, {
-            depth: options.depth || 2
+        self.log(level, util.inspect(value, {
+            depth: self.options.depth || 2
         }));
     }
-}
+};
 
-function log(level, message) {
+Logger.prototype.log = function log(level, message) {
     if (level === 'error') {
         console.error(message);
     } else {
         console.log(message);
     }
-}
+};
