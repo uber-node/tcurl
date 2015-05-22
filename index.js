@@ -32,11 +32,12 @@ var DebugLogtron = require('debug-logtron');
 
 var console = require('console');
 var process = require('process');
-var util = require('util');
 var fs = require('fs');
 var path = require('path');
 var url = require('url');
 var assert = require('assert');
+
+var Logger = require('./log');
 
 main.exec = execMain;
 
@@ -115,6 +116,7 @@ function main(argv, onResponse) {
 }
 
 function tcurl(opts) {
+    var logger = Logger(opts);
     var spec;
     if (opts.thrift) {
         var specs = {};
@@ -201,39 +203,23 @@ function tcurl(opts) {
         }
 
         if (err) {
-            console.error(err);
-            console.error(err.message);
+            logger.log('error', err);
+            logger.log('error', err.message);
             /*eslint no-process-exit: 0*/
             process.exit(1);
         }
 
         if (!resp.ok) {
-            console.error('Got call response not ok');
-            display('error', resp.body);
+            logger.log('error', 'Got call response not ok');
+            logger.log('error', resp.body);
             process.exit(1);
+        } else {
+            logger.display('log', 'Got call response ok');
         }
 
-        display('log', resp.body);
+        if (resp.body) {
+            logger.display('log', resp.body);
+        }
         client.quit();
-    }
-
-    function display(level, value) {
-        if (opts.json) {
-            log(level, JSON.stringify(value, null, opts.json));
-        } else if (opts.raw) {
-            log(level, String(value));
-        } else {
-            log(level, util.inspect(value, {
-                depth: opts.depth || 2
-            }));
-        }
-    }
-
-    function log(level, message) {
-        if (level === 'error') {
-            console.error(message);
-        } else {
-            console.log(message);
-        }
     }
 }
