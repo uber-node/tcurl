@@ -32,7 +32,10 @@ function Logger(options) {
     }
 
     var self = this;
-    self.options = options;
+    self.options = {};
+    self.options.json = options.json;
+    self.options.raw = options.raw;
+    self.options.depth = options.depth;
 }
 
 Logger.prototype.display = function display(level, value) {
