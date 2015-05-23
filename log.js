@@ -52,6 +52,7 @@ Logger.prototype.display = function display(level, value) {
 };
 
 Logger.prototype.log = function log(level, message) {
+    /*eslint no-console: 0*/
     if (level === 'error') {
         console.error(message);
     } else {
