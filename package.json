@@ -24,7 +24,7 @@
     "minimist": "^1.1.1",
     "my-local-ip": "^1.0.0",
     "process": "^0.11.0",
-    "tchannel": "2.0.0-beta25",
+    "tchannel": "2.0.0-beta26",
     "thriftify": "1.0.0-alpha13"
   },
   "devDependencies": {

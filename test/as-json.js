@@ -83,6 +83,9 @@ test('getting an ok response', function t(assert) {
                     head: head,
                     body: body,
                     serviceName: serviceName
+                },
+                headers: {
+                    'as': 'json'
                 }
             });
 
