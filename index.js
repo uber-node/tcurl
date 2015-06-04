@@ -172,6 +172,7 @@ function tcurl(opts) {
             sender.send(request, opts.endpoint, opts.head,
                 opts.body, onResponse);
         } else if (opts.raw) {
+            request.headers.as = 'raw';
             request.send(opts.endpoint, opts.head, opts.body,
                 onResponse);
         } else {
