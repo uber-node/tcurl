@@ -24,6 +24,7 @@
     "minimist": "^1.1.1",
     "my-local-ip": "^1.0.0",
     "process": "^0.11.0",
+    "readable-stream": "^1.0.33",
     "tchannel": "2.0.0-beta31",
     "thriftify": "1.0.0-alpha13"
   },
@@ -33,6 +34,7 @@
     "itape": "^1.5.0",
     "lint-trap": "^1.0.0",
     "opn": "^1.0.1",
+    "ready-signal": "^1.2.0",
     "tape": "^3.4.0",
     "uber-licence": "1.5.1",
     "uber-standard": "3.6.4"
@@ -45,7 +47,7 @@
   ],
   "scripts": {
     "add-licence": "uber-licence",
-    "check-cover": "istanbul check-coverage --branches=100 --lines=100 --functions=100 || echo lol",
+    "check-cover": "istanbul check-coverage --branches=50 --lines=70 --functions=80 || echo lol",
     "check-licence": "uber-licence --dry",
     "check-ls": "npm ls 1>/dev/null",
     "cover": "npm run test-cover -s && npm run check-cover -s",
