@@ -144,6 +144,14 @@ function tcurl(opts) {
     var client = TChannel({
         logger: DebugLogtron('tcurl')
     });
+    var subChan = client.makeSubChannel({
+        serviceName: opts.service,
+        requestDefaults: {
+            headers: {
+                cn: 'tcurl'
+            }
+        }
+    });
 
     client.on('listening', onListen);
     client.listen(0, '127.0.0.1');
@@ -161,9 +169,10 @@ function tcurl(opts) {
             return onResponse(err);
         }
 
-        var request = client.request({
+        var request = subChan.request({
             host: opts.hostname + ':' + opts.port,
             timeout: opts.timeout || 5000,
+            hasNoParent: true,
             serviceName: opts.service
         });
         var sender;

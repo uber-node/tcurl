@@ -54,7 +54,10 @@ TCurlAsHttp.prototype.send = function send() {
         serviceName: self.serviceName,
         peers: [self.remoteHostPort],
         requestDefaults: {
-            serviceName: self.serviceName
+            serviceName: self.serviceName,
+            headers: {
+                cn: 'tcurl'
+            }
         }
     });
 
