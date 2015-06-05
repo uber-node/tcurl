@@ -56,7 +56,10 @@ test('getting an ok response', function t(assert) {
             subServer, {
                 host: '127.0.0.1',
                 port: 8081
-            }, req, res);
+            },
+            req,
+            res
+        );
     });
 
     var hostname = '127.0.0.1';
@@ -66,7 +69,8 @@ test('getting an ok response', function t(assert) {
     var head = {
         Accept: 'text/plain',
        'Accept-Language': 'en-US',
-       special: 'CQ'};
+       special: 'CQ'
+    };
     var body = 'Hello Server';
 
     var ready = ReadySignal(2);
@@ -90,7 +94,6 @@ test('getting an ok response', function t(assert) {
             if (err) {
                 assert.end(err);
             }
-
             assert.equals(resp, 'Hello Test', 'response should equal');
             server.close();
             httpServer.close();

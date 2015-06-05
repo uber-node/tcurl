@@ -21,9 +21,7 @@
 // THE SOFTWARE.
 
 'use strict';
-
-var http = require('http');
-var ReadySignal = require('ready-signal/counted');
+var PassThrough = require('readable-stream').PassThrough;
 var TChannelAsHTTP = require('tchannel/as/http');
 var TChannel = require('tchannel');
 
@@ -35,9 +33,6 @@ function TCurlAsHttp(options) {
     }
 
     var self = this;
-    self.host = '127.0.0.1';
-    self.port = 8000;
-    self.proxyPort = 8080;
 
     self.remoteHostPort = options.remoteHostPort;
     self.serviceName = options.serviceName;
@@ -54,8 +49,8 @@ TCurlAsHttp.prototype.send = function send() {
     var self = this;
 
     self.client = TChannel();
-    var asHttpClient = TChannelAsHTTP();
-    var subClient = self.client.makeSubChannel({
+    self.asHttpClient = TChannelAsHTTP();
+    self.subClient = self.client.makeSubChannel({
         serviceName: self.serviceName,
         peers: [self.remoteHostPort],
         requestDefaults: {
@@ -63,62 +58,42 @@ TCurlAsHttp.prototype.send = function send() {
         }
     });
 
-    self.proxy = http.createServer(
-        function onForwarding(hreq, hres) {
-            asHttpClient.forwardToTChannel(subClient, hreq, hres);
-        });
-
-    var ready = ReadySignal(2);
-    self.client.listen(self.port, self.host, ready.signal);
-    self.proxy.listen(self.proxyPort, self.host, ready.signal);
-    ready(function onReady(err) {
-        if (err) {
-            if (self.onResponse) {
-                self.onResponse(err, null);
-            } else {
-                throw err;
-            }
-        }
-
-        self.start();
-    });
+    self.start();
 };
 
 TCurlAsHttp.prototype.start = function start() {
     var self = this;
-    var options = {
-        hostname: self.host,
-        port: self.proxyPort,
-        path: self.endpoint,
-        method: self.method,
-        headers: self.headers
-    };
 
-    var hreq = http.request(options, onRes);
-    if (self.body) {
-        hreq.write(self.body);
-    }
-    hreq.end();
+    var hreq = PassThrough();
+    hreq.end(self.body);
+    hreq.path = self.endpoint;
+    hreq.method = self.method;
+    hreq.headers = self.headers;
 
-    function onRes(res) {
-        var str = '';
-
-        self.logger.display('log', res.statusCode);
-
-        // another chunk of data has been recieved, so append it to `str`
-        res.on('data', function onData(chunk) {
-            str += chunk;
+    var req = self.subClient.request({streamed: true});
+    self.subClient.waitForIdentified(
+        {host: self.remoteHostPort},
+        function onIdentified() {
+            self.asHttpClient.sendRequest(
+                req,
+                hreq,
+                function sent(err, head, body) {
+                    var str;
+                    if (err) {
+                        self.logger.log('error', err);
+                    } else {
+                        self.logger.display('log', head.statusCode);
+                        str = '';
+                        body.on('data', function onData(chunk) {
+                            str += chunk;
+                        });
+                        body.on('end', function onEnd() {
+                            self.logger.display('log', str);
+                        });
+                    }
+                    if (self.onResponse) {
+                        self.onResponse(err, str);
+                    }
+                });
         });
-
-        // the whole response has been recieved, so we just print it out here
-        res.on('end', function onEnd() {
-            self.logger.display('log', str);
-            self.client.close();
-            self.proxy.close();
-
-            if (self.onResponse) {
-                self.onResponse(null, str);
-            }
-        });
-    }
 };
