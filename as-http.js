@@ -70,30 +70,38 @@ TCurlAsHttp.prototype.start = function start() {
     hreq.method = self.method;
     hreq.headers = self.headers;
 
-    var req = self.subClient.request({streamed: true});
-    self.subClient.waitForIdentified(
-        {host: self.remoteHostPort},
-        function onIdentified() {
-            self.asHttpClient.sendRequest(
-                req,
-                hreq,
-                function sent(err, head, body) {
-                    var str;
-                    if (err) {
-                        self.logger.log('error', err);
-                    } else {
-                        self.logger.display('log', head.statusCode);
-                        str = '';
-                        body.on('data', function onData(chunk) {
-                            str += chunk;
-                        });
-                        body.on('end', function onEnd() {
-                            self.logger.display('log', str);
-                        });
-                    }
-                    if (self.onResponse) {
-                        self.onResponse(err, str);
-                    }
-                });
+    var req = self.subClient.request({
+        streamed: true,
+        hasNoParent: true
+    });
+    self.subClient.waitForIdentified({
+        host: self.remoteHostPort
+    }, function onIdentified() {
+        self.asHttpClient.sendRequest(req, hreq, onSent);
+    });
+
+    function onSent(err, head, body) {
+        if (err) {
+            if (self.onResponse) {
+                return self.onResponse(err);
+            }
+            return self.logger.log('error', err);
+        }
+
+        if (!self.onResponse) {
+            self.logger.display('log', head.statusCode);
+        }
+
+        var str = '';
+        body.on('data', function onData(chunk) {
+            str += chunk;
         });
+        body.on('end', function onEnd() {
+            if (self.onResponse) {
+                return self.onResponse(null, str);
+            }
+
+            self.logger.display('log', str);
+        });
+    }
 };
