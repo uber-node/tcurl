@@ -38,6 +38,7 @@ var url = require('url');
 var assert = require('assert');
 
 var Logger = require('./log');
+var TCurlAsHttp = require('./as-http');
 
 main.exec = execMain;
 
@@ -66,6 +67,7 @@ function help() {
     console.log('    -j print JSON');
     console.log('    -J [indent] print JSON with indentation');
     console.log('    -t [dir] directory containing Thrift files');
+    console.log('    --http method');
     console.log('    --raw encode arg2 & arg3 raw');
     return;
 }
@@ -76,6 +78,7 @@ function parseArgs(argv) {
 
     var uri = argv.p || argv.peer;
     var thrift = argv.t || argv.thrift;
+    var http = argv.http;
     var json = argv.j || argv.J;
     var service = argv._[0];
     var endpoint = argv._[1];
@@ -98,6 +101,7 @@ function parseArgs(argv) {
         hostname: parsedUri.hostname,
         port: parsedUri.port,
         thrift: thrift,
+        http: http,
         json: json,
         raw: argv.raw,
         depth: argv.depth
@@ -175,6 +179,18 @@ function tcurl(opts) {
             request.headers.as = 'raw';
             request.send(opts.endpoint, opts.head, opts.body,
                 onResponse);
+        } else if (opts.http) {
+            var ashttp = TCurlAsHttp({
+                remoteHostPort: opts.hostname + ':' + opts.port,
+                serviceName: opts.service,
+                method: opts.http,
+                path: opts.endpoint,
+                headers: JSON.parse(opts.head),
+                body: JSON.parse(opts.body),
+                onResponse: onResponse,
+                logger: logger
+            });
+            ashttp.send();
         } else {
             sender = new TChannelAsJSON();
 

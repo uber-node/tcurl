@@ -22,3 +22,4 @@
 
 require('./tcurl.js');
 require('./as-json.js');
+require('./as-http.js');
