@@ -73,13 +73,13 @@ TCurlAsHttp.prototype.start = function start() {
     hreq.method = self.method;
     hreq.headers = self.headers;
 
-    var req = self.subClient.request({
-        streamed: true,
-        hasNoParent: true
-    });
     self.subClient.waitForIdentified({
         host: self.remoteHostPort
     }, function onIdentified() {
+        var req = self.subClient.request({
+            streamed: true,
+            hasNoParent: true
+        });
         self.asHttpClient.sendRequest(req, hreq, onSent);
     });
 
