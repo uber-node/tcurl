@@ -25,7 +25,6 @@
 var TChannel = require('tchannel');
 var TChannelAsThrift = require('tchannel/as/thrift');
 var TChannelAsJSON = require('tchannel/as/json');
-var thriftify = require('thriftify');
 var minimist = require('minimist');
 var myLocalIp = require('my-local-ip');
 var DebugLogtron = require('debug-logtron');
@@ -131,7 +130,7 @@ function tcurl(opts) {
                 var serviceName = match[1];
                 var fileName = match[0];
                 specs[serviceName] =
-                    thriftify.readSpecSync(path.join(opts.thrift, fileName));
+                    fs.readFileSync(path.join(opts.thrift, fileName), 'utf8');
             }
         });
 
@@ -181,7 +180,7 @@ function tcurl(opts) {
                 opts.body = JSON.parse(opts.body);
             }
 
-            sender = new TChannelAsThrift({spec: spec});
+            sender = new TChannelAsThrift({source: spec});
             sender.send(request, opts.endpoint, opts.head,
                 opts.body, onResponse);
         } else if (opts.raw) {
