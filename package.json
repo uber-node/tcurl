@@ -25,8 +25,7 @@
     "my-local-ip": "^1.0.0",
     "process": "^0.11.0",
     "readable-stream": "^1.0.33",
-    "tchannel": "2.0.0-rc6",
-    "thriftify": "1.0.0-alpha13"
+    "tchannel": "2.0.0-rc6"
   },
   "devDependencies": {
     "coveralls": "^2.10.0",
