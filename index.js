@@ -214,10 +214,10 @@ function tcurl(opts) {
     }
 
     function onResponse(err, resp, arg2, arg3) {
-        if (arg2 && resp) {
+        if (arg2 !== undefined && resp) {
             resp.head = arg2;
         }
-        if (arg3 && resp) {
+        if (arg3 !== undefined && resp) {
             resp.body = arg3;
         }
 
@@ -242,9 +242,7 @@ function tcurl(opts) {
             logger.display('log', 'Got call response ok');
         }
 
-        if (resp.body) {
-            logger.display('log', resp.body);
-        }
+        logger.display('log', resp.body);
         client.quit();
     }
 }
