@@ -170,7 +170,7 @@ function tcurl(opts) {
 
         var request = subChan.request({
             host: opts.hostname + ':' + opts.port,
-            timeout: opts.timeout || 5000,
+            timeout: opts.timeout || 100,
             hasNoParent: true,
             serviceName: opts.service
         });
