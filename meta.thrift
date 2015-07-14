@@ -5,5 +5,5 @@ struct HealthStatus {
 
 service Meta {
     HealthStatus health()
-    string thriftIdl()
+    string thriftIDL()
 }
