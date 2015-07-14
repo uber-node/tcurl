@@ -1,3 +1,5 @@
+#!/usr/bin/env node
+
 // Copyright (c) 2015 Uber Technologies, Inc.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -20,7 +22,40 @@
 
 'use strict';
 
-require('./tcurl.js');
-require('./as-json.js');
-require('./as-http.js');
-require('./health.js');
+var TChannelAsThrift = require('tchannel/as/thrift');
+var fs = require('fs');
+var path = require('path');
+
+module.exports = MetaClient;
+
+function MetaClient(options) {
+    if (!(this instanceof MetaClient)) {
+        return new MetaClient(options);
+    }
+
+    var self = this;
+
+    self.channel = options.channel;
+    self.logger = options.logger;
+    var spec = fs.readFileSync(path.join(__dirname, 'meta.thrift'), 'utf8');
+    self.asThrift = new TChannelAsThrift({source: spec});
+}
+
+MetaClient.prototype.health = function health(req, cb) {
+    var self = this;
+    self.asThrift.send(req, 'Meta::health', null, {}, onResponse);
+    function onResponse(err, resp) {
+        var msg;
+        if (err || !resp || !resp.ok) {
+            msg = 'notOk';
+        } else {
+            msg = 'ok';
+        }
+
+        self.logger.log('log', msg);
+        self.channel.close();
+        if (cb) {
+            cb(msg);
+        }
+    }
+};

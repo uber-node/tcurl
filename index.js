@@ -38,6 +38,7 @@ var assert = require('assert');
 
 var Logger = require('./log');
 var TCurlAsHttp = require('./as-http');
+var MetaClient = require('./meta-client');
 
 main.exec = execMain;
 
@@ -68,6 +69,7 @@ function help() {
     console.log('    -t [dir] directory containing Thrift files');
     console.log('    --http method');
     console.log('    --raw encode arg2 & arg3 raw');
+    console.log('    --health');
     return;
 }
 
@@ -81,6 +83,7 @@ function parseArgs(argv) {
     var json = argv.j || argv.J;
     var service = argv._[0];
     var endpoint = argv._[1];
+    var health = argv.health;
     var parsedUri = url.parse('tchannel://' + uri);
 
     if (parsedUri.hostname === 'localhost') {
@@ -89,7 +92,7 @@ function parseArgs(argv) {
 
     assert(parsedUri.hostname, 'host required');
     assert(parsedUri.port, 'port required');
-    assert(endpoint, 'endpoint required');
+    assert(health || endpoint, 'endpoint required');
     assert(service, 'service required');
 
     return {
@@ -103,7 +106,8 @@ function parseArgs(argv) {
         http: http,
         json: json,
         raw: argv.raw,
-        depth: argv.depth
+        depth: argv.depth,
+        health: health
     };
 }
 
@@ -177,7 +181,13 @@ function tcurl(opts) {
             serviceName: opts.service
         });
         var sender;
-        if (opts.thrift) {
+        if (opts.health) {
+            var meta = new MetaClient({
+                channel: client,
+                logger: logger
+            });
+            meta.health(request, opts.onResponse);
+        } else if (opts.thrift) {
             if (opts.body) {
                 opts.body = JSON.parse(opts.body);
             }
