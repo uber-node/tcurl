@@ -37,15 +37,14 @@ var asThrift = new TChannelAsThrift({source: thriftText});
 function goodHealth(opts, req, head, body, cb) {
     return cb(null, {
         ok: true,
-        body: null
+        body: {ok: true}
     });
 }
 
 function badHealth(opts, req, head, body, cb) {
     return cb(null, {
-        ok: false,
-        body: new Error('bad'),
-        typeName: 'bad'
+        ok: true,
+        body: {ok: false, message: 'having a bad day!'}
     });
 }
 
@@ -111,7 +110,7 @@ test('getting a notOk', function t(assert) {
         tcurl.exec(cmd, onResponse);
 
         function onResponse(msg) {
-            assert.equals(msg, 'notOk', 'should be notOk');
+            assert.equals(msg, 'notOk\nhaving a bad day!', 'should be notOk');
             server.close();
             assert.end();
         }

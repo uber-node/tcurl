@@ -46,8 +46,11 @@ MetaClient.prototype.health = function health(req, cb) {
     self.asThrift.send(req, 'Meta::health', null, {}, onResponse);
     function onResponse(err, resp) {
         var msg;
-        if (err || !resp || !resp.ok) {
+        if (err || !resp || !resp.ok || !resp.body.ok) {
             msg = 'notOk';
+            if (resp && resp.body && resp.body.message) {
+                msg += '\n' + resp.body.message;
+            }
         } else {
             msg = 'ok';
         }
