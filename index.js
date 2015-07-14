@@ -143,9 +143,12 @@ function tcurl(opts) {
     var client = TChannel({
         logger: DebugLogtron('tcurl')
     });
+
     var subChan = client.makeSubChannel({
         serviceName: opts.service,
+        peers: [opts.hostname + ':' + opts.port],
         requestDefaults: {
+            serviceName: opts.service,
             headers: {
                 cn: 'tcurl'
             }
@@ -169,7 +172,6 @@ function tcurl(opts) {
         }
 
         var request = subChan.request({
-            host: opts.hostname + ':' + opts.port,
             timeout: opts.timeout || 100,
             hasNoParent: true,
             serviceName: opts.service
@@ -189,8 +191,8 @@ function tcurl(opts) {
                 onResponse);
         } else if (opts.http) {
             var ashttp = TCurlAsHttp({
-                remoteHostPort: opts.hostname + ':' + opts.port,
-                serviceName: opts.service,
+                channel: client,
+                subChannel: subChan,
                 method: opts.http,
                 path: opts.endpoint,
                 headers: JSON.parse(opts.head),
