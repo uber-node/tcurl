@@ -23,7 +23,6 @@
 'use strict';
 var PassThrough = require('readable-stream').PassThrough;
 var TChannelAsHTTP = require('tchannel/as/http');
-var TChannel = require('tchannel');
 
 module.exports = TCurlAsHttp;
 
@@ -37,7 +36,10 @@ function TCurlAsHttp(options) {
     self.remoteHostPort = options.remoteHostPort;
     self.serviceName = options.serviceName;
     self.logger = options.logger;
+    self.channel = options.channel;
+    self.subChannel = options.subChannel;
 
+    self.asHttpClient = TChannelAsHTTP();
     self.method = options.method;
     self.headers = options.headers;
     self.path = options.endpoint;
@@ -48,40 +50,17 @@ function TCurlAsHttp(options) {
 TCurlAsHttp.prototype.send = function send() {
     var self = this;
 
-    self.client = TChannel();
-    self.asHttpClient = TChannelAsHTTP();
-    self.subClient = self.client.makeSubChannel({
-        serviceName: self.serviceName,
-        peers: [self.remoteHostPort],
-        requestDefaults: {
-            serviceName: self.serviceName,
-            headers: {
-                cn: 'tcurl'
-            }
-        }
-    });
-
-    self.start();
-};
-
-TCurlAsHttp.prototype.start = function start() {
-    var self = this;
-
     var hreq = PassThrough();
     hreq.end(self.body);
     hreq.path = self.endpoint;
     hreq.method = self.method;
     hreq.headers = self.headers;
 
-    self.subClient.waitForIdentified({
-        host: self.remoteHostPort
-    }, function onIdentified() {
-        var req = self.subClient.request({
-            streamed: true,
-            hasNoParent: true
-        });
-        self.asHttpClient.sendRequest(req, hreq, onSent);
+    var req = self.subChannel.request({
+        streamed: true,
+        hasNoParent: true
     });
+    self.asHttpClient.sendRequest(req, hreq, onSent);
 
     function onSent(err, head, body) {
         if (err) {
