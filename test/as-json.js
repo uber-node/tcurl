@@ -94,3 +94,74 @@ test('getting an ok response', function t(assert) {
         }
     }
 });
+
+function slowEcho(opts, req, head, body, cb) {
+    setTimeout(function slowReturn() {
+        cb(null, {
+            ok: true,
+            head: null,
+            body: {
+                opts: opts,
+                head: head,
+                body: body,
+                serviceName: req.serviceName
+           }
+        });
+    }, 200);
+}
+
+test('timeouts work', function t(assert) {
+    var server = new TChannel({
+        serviceName: 'server'
+    });
+    var opts = {
+        isOptions: true
+    };
+
+    var hostname = '127.0.0.1';
+    var port = 4040;
+    var endpoint = 'echo';
+    var head = {some: 'echo-head'};
+    var body = {some: 'body'};
+    var serviceName = 'server';
+
+    var tchannelJSON = TChannelJSON();
+    tchannelJSON.register(server, endpoint, opts, slowEcho);
+
+    server.listen(port, hostname, onListening);
+    function onListening() {
+        var cmd = [
+            '-p', hostname + ':' + port,
+            serviceName,
+            endpoint,
+            '-2', JSON.stringify(head),
+            '-3', JSON.stringify(body),
+            '--timeout', 300,
+            '-J'
+        ];
+
+        tcurl.exec(cmd, onResponse);
+
+        function onResponse(err, resp) {
+            assert.ifError(err);
+            assert.deepEqual(resp, {
+                ok: true,
+                head: null,
+                body: {
+                    opts: {
+                        isOptions: true
+                    },
+                    head: head,
+                    body: body,
+                    serviceName: serviceName
+                },
+                headers: {
+                    'as': 'json'
+                }
+            });
+
+            server.close();
+            assert.end();
+        }
+    }
+});

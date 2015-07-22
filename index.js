@@ -70,6 +70,7 @@ function help() {
     console.log('    --http method');
     console.log('    --raw encode arg2 & arg3 raw');
     console.log('    --health');
+    console.log('    --timeout [num]')
     return;
 }
 
@@ -106,6 +107,7 @@ function parseArgs(argv) {
         http: http,
         json: json,
         raw: argv.raw,
+        timeout: argv.timeout,
         depth: argv.depth,
         health: health
     };
