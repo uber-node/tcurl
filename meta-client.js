@@ -25,6 +25,7 @@
 var TChannelAsThrift = require('tchannel/as/thrift');
 var fs = require('fs');
 var path = require('path');
+var process = require('process');
 
 module.exports = MetaClient;
 
@@ -46,19 +47,26 @@ MetaClient.prototype.health = function health(req, cb) {
     self.asThrift.send(req, 'Meta::health', null, {}, onResponse);
     function onResponse(err, resp) {
         var msg;
+        var isHealthy = null;
+
         if (err || !resp || !resp.ok || !resp.body.ok) {
             msg = 'notOk';
+            isHealthy = false;
             if (resp && resp.body && resp.body.message) {
                 msg += '\n' + resp.body.message;
             }
         } else {
             msg = 'ok';
+            isHealthy = true;
         }
 
         self.logger.log('log', msg);
         self.channel.close();
         if (cb) {
             cb(msg);
+        } else {
+            /*eslint no-process-exit: 0*/
+            process.exit(isHealthy ? 0 : 1);
         }
     }
 };
