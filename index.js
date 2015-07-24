@@ -70,7 +70,7 @@ function help() {
     console.log('    --http method');
     console.log('    --raw encode arg2 & arg3 raw');
     console.log('    --health');
-    console.log('    --timeout [num]')
+    console.log('    --timeout [num]');
     return;
 }
 
@@ -190,9 +190,6 @@ function tcurl(opts) {
             });
             meta.health(request, opts.onResponse);
         } else if (opts.thrift) {
-            if (opts.head) {
-                opts.head = JSON.parse(opts.head);
-            }
             if (opts.body) {
                 opts.body = JSON.parse(opts.body);
             }

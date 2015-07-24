@@ -38,7 +38,7 @@ test('getting an ok response', function t(assert) {
         serviceName: serviceName
     });
 
-    var opts = {isOptions: true}; 
+    var opts = {isOptions: true};
     var hostname = '127.0.0.1';
     var port = 4040;
     var endpoint = 'Meta::health';
@@ -62,7 +62,9 @@ test('getting an ok response', function t(assert) {
         tcurl.exec(cmd, onResponse);
 
         function onResponse(err, resp) {
-            if (err) return assert.end(err);
+            if (err) {
+                return assert.end(err);
+            }
             assert.deepEqual(resp.head, {
                 headerName: 'responseHeader'
             }, 'caller receives headers from handler');
@@ -76,8 +78,8 @@ test('getting an ok response', function t(assert) {
         }
     }
 
-    function health(opts, req, head, body, cb) {
-        assert.deepEqual(opts, {
+    function health(options, req, head, body, cb) {
+        assert.deepEqual(options, {
             isOptions: true
         }, 'handler receives options through registration');
         assert.deepEqual(head, {

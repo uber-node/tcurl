@@ -22,6 +22,7 @@
 
 /* jshint maxparams:5 */
 
+var timers = require('timers');
 var test = require('tape');
 var tcurl = require('../index.js');
 var TChannel = require('tchannel');
@@ -96,7 +97,7 @@ test('getting an ok response', function t(assert) {
 });
 
 function slowEcho(opts, req, head, body, cb) {
-    setTimeout(function slowReturn() {
+    timers.setTimeout(function slowReturn() {
         cb(null, {
             ok: true,
             head: null,
