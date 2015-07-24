@@ -190,9 +190,6 @@ function tcurl(opts) {
             });
             meta.health(request, opts.onResponse);
         } else if (opts.thrift) {
-            if (opts.head) {
-                opts.head = JSON.parse(opts.head);
-            }
             if (opts.body) {
                 opts.body = JSON.parse(opts.body);
             }
