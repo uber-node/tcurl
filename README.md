@@ -26,6 +26,30 @@ tcurl -p host:port <service> <endpoint> [options]
 
 `npm install tcurl`
 
+## Examples
+
+### Thrift
+
+For the purposes of these examples, let's assume that you have a TChannel
+server listening on `localhost:1234`. The server registers handlers for the
+thrift interface saved as `services/chamber.thrift` and defined as:
+
+```thrift
+struct EchoRequest {
+  1: required string input;
+}
+
+service Chamber {
+  string echo(
+    1: required EchoRequest request;
+  )
+}
+```
+
+You could use TCurl to query this service by running:
+
+`tcurl -p localhost:1234 chamber Chamber::echo -t ./services -3 '{"request": {"input": "foo"}}'
+
 ## NPM scripts
 
  - `npm run add-licence` This will add the licence headers.
