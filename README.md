@@ -50,6 +50,17 @@ You could use TCurl to query this service by running:
 
 `tcurl -p localhost:1234 chamber Chamber::echo -t ./services -3 '{"request": {"input": "foo"}}'
 
+## `localhost` caveat
+
+For TChannel and Hyperbahn to work together effectively, most tchannel services need to listen on the
+external IP of the host they are running on.
+
+This means when you use `127.0.0.1` you cannot reach the service with tcurl as it's not listening on
+loopback.
+
+To make supporting external IPs easier we've made `localhost` resolve to the external IP of the machine.
+This means if your listening on loopback you have to use `127.0.0.1` and not `localhost`
+
 ## NPM scripts
 
  - `npm run add-licence` This will add the licence headers.
