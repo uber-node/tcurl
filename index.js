@@ -127,22 +127,27 @@ function main(argv, onResponse) {
 function tcurl(opts) {
     var logger = Logger(opts);
     var spec;
-    if (opts.thrift) {
-        var specs = {};
-        var files = fs.readdirSync(opts.thrift);
-        files.forEach(function eachFile(file) {
-            var match = /([^\/]+)\.thrift$/.exec(file);
-            if (match) {
-                var serviceName = match[1];
-                var fileName = match[0];
-                specs[serviceName] =
-                    fs.readFileSync(path.join(opts.thrift, fileName), 'utf8');
-            }
-        });
 
-        spec = specs[opts.service];
-        if (!spec) {
-            throw new Error('Spec for service unavailable: ' + opts.service);
+    if (opts.thrift) {
+        var optStat = fs.statSync(opts.thrift);
+        if (optStat.isFile()) {
+            spec = fs.readFileSync(opts.thrift, 'utf8');
+        } else {
+            var specs = {};
+            var files = fs.readdirSync(opts.thrift);
+            files.forEach(function eachFile(file) {
+                var match = /([^\/]+)\.thrift$/.exec(file);
+                if (match) {
+                    var serviceName = match[1];
+                    var fileName = match[0];
+                    specs[serviceName] = fs.readFileSync(path.join(opts.thrift, fileName), 'utf8');
+                }
+            });
+
+            spec = specs[opts.service];
+            if (!spec) {
+                throw new Error('Spec for service unavailable: ' + opts.service);
+            }
         }
     }
 
