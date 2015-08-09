@@ -76,22 +76,23 @@ function help() {
         '  ',
         '  Options: ',
         // TODO @file; @- stdin.
-        '    -2 [data] send an arg2 blob',
-        '    -3 [data] send an arg3 blob',
-        '    --depth=n configure inspect printing depth',
-        '    -j print JSON',
-        '    -J [indent] print JSON with indentation',
-        '    -t [dir] directory containing Thrift files',
-        '    --http method',
-        '    --raw encode arg2 & arg3 raw',
-        '    --health',
-        '    --timeout [num]'
+        '    -2 [data]        send an arg2 blob',
+        '    -3 [data]        send an arg3 blob',
+        '    --shardKey       send ringpop shardKey transport header',
+        '    --depth=n        configure inspect printing depth',
+        '    -j               print JSON',
+        '    -t [dir]         directory containing Thrift files',
+        '    --http [method]  use tchannel as http with specified HTTP method',
+        '    --raw            encode arg2 & arg3 raw',
+        '    --health         query the Meta::health endpoint',
+        '    --timeout [num]  set a query timeout'
     ].join('\n');
     console.log(helpMessage);
     return;
 }
 
 function parseArgs(argv) {
+    var transportHeaders = argv.headers;
     var service = argv._[0];
     var endpoint = argv._[1];
     var health = argv.health;
@@ -113,6 +114,7 @@ function parseArgs(argv) {
     return {
         head: argv.head,
         body: argv.body,
+        transportHeaders: transportHeaders,
         service: service,
         endpoint: endpoint,
         hostname: parsedUri.hostname,
@@ -123,7 +125,8 @@ function parseArgs(argv) {
         raw: argv.raw,
         timeout: argv.timeout,
         depth: argv.depth,
-        health: health
+        health: health,
+        shardKey: argv.shardKey
     };
 }
 
@@ -207,8 +210,13 @@ function tcurl(opts) {
         var request = subChan.request({
             timeout: opts.timeout || 100,
             hasNoParent: true,
-            serviceName: opts.service
+            serviceName: opts.service,
+            headers: opts.transportHeaders
         });
+
+        if (opts.shardKey) {
+            request.headers.shardKey = opts.shardKey;
+        }
 
         if (opts.health) {
             var meta = new MetaClient({
