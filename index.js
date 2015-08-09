@@ -57,10 +57,13 @@ function execMain(str, cb) {
 }
 
 function help() {
-    console.log('tcurl [-H <hostlist> | -p host:port] <service> <endpoint> [options]');
+    console.log(
+        'tcurl [-H <hostlist> | -p host:port] <service> <endpoint> [options]'
+    );
     console.log('  ');
     console.log('  Options: ');
     // TODO @file; @- stdin.
+    console.log('    --headers [data] send transport headers');
     console.log('    -2 [data] send an arg2 blob');
     console.log('    -3 [data] send an arg3 blob');
     console.log('    --depth=n configure inspect printing depth');
@@ -75,6 +78,7 @@ function help() {
 }
 
 function parseArgs(argv) {
+    var transportHeaders = argv.headers;
     var body = argv['3'] || argv.arg3 || '';
     var head = argv['2'] || argv.arg2 || '';
 
@@ -103,6 +107,7 @@ function parseArgs(argv) {
     assert(service, 'service required');
 
     return {
+        transportHeaders: transportHeaders,
         head: head,
         body: body,
         service: service,
@@ -150,7 +155,8 @@ function readThriftSpecDir(opts) {
         if (match) {
             var serviceName = match[1];
             var fileName = match[0];
-            specs[serviceName] = fs.readFileSync(path.join(opts.thrift, fileName), 'utf8');
+            specs[serviceName] =
+                fs.readFileSync(path.join(opts.thrift, fileName), 'utf8');
         }
     });
 
@@ -203,8 +209,13 @@ function tcurl(opts) {
         var request = subChan.request({
             timeout: opts.timeout || 100,
             hasNoParent: true,
-            serviceName: opts.service
+            serviceName: opts.service,
+            headers: opts.transportHeaders
         });
+
+        if (opts.headers) {
+            opts.headers = JSON.parse(opts.headers);
+        }
         var sender;
         if (opts.health) {
             var meta = new MetaClient({
