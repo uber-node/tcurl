@@ -92,7 +92,6 @@ function help() {
 }
 
 function parseArgs(argv) {
-    var transportHeaders = argv.headers;
     var service = argv._[0];
     var endpoint = argv._[1];
     var health = argv.health;
@@ -114,7 +113,6 @@ function parseArgs(argv) {
     return {
         head: argv.head,
         body: argv.body,
-        transportHeaders: transportHeaders,
         service: service,
         endpoint: endpoint,
         hostname: parsedUri.hostname,
