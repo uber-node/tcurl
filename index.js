@@ -78,7 +78,7 @@ function help() {
 }
 
 function parseArgs(argv) {
-    var transportHeaders = argv.headers;
+    var transportHeaders = argv.headers ? JSON.parse(argv.headers) : {};
     var body = argv['3'] || argv.arg3 || '';
     var head = argv['2'] || argv.arg2 || '';
 
@@ -212,10 +212,6 @@ function tcurl(opts) {
             serviceName: opts.service,
             headers: opts.transportHeaders
         });
-
-        if (opts.headers) {
-            opts.headers = JSON.parse(opts.headers);
-        }
         var sender;
         if (opts.health) {
             var meta = new MetaClient({
