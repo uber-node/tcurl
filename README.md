@@ -14,9 +14,9 @@ A command line utility to talk to a tchannel server
 tcurl -p host:port <service> <endpoint> [options]
 
   Options:
-    --headers send transport headers (JSON string)
     -2 [data] send an arg2 blob
     -3 [data] send an arg3 blob
+    --shardKey send ringpop shardKey transport header
     --depth=n configure inspect printing depth
     -j print JSON
     -J [indent] print JSON with indentation

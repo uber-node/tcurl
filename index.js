@@ -63,9 +63,9 @@ function help() {
     console.log('  ');
     console.log('  Options: ');
     // TODO @file; @- stdin.
-    console.log('    --headers [data] send transport headers');
     console.log('    -2 [data] send an arg2 blob');
     console.log('    -3 [data] send an arg3 blob');
+    console.log('    --shardKey [data] send ringpop transport shardKey header');
     console.log('    --depth=n configure inspect printing depth');
     console.log('    -j print JSON');
     console.log('    -J [indent] print JSON with indentation');
@@ -78,7 +78,6 @@ function help() {
 }
 
 function parseArgs(argv) {
-    var transportHeaders = argv.headers ? JSON.parse(argv.headers) : {};
     var body = argv['3'] || argv.arg3 || '';
     var head = argv['2'] || argv.arg2 || '';
 
@@ -90,6 +89,7 @@ function parseArgs(argv) {
     var service = argv._[0];
     var endpoint = argv._[1];
     var health = argv.health;
+    var shardKey = argv.shardKey
 
     if (hostlist) {
         uri = JSON.parse(fs.readFileSync(hostlist))[0];
@@ -107,7 +107,6 @@ function parseArgs(argv) {
     assert(service, 'service required');
 
     return {
-        transportHeaders: transportHeaders,
         head: head,
         body: body,
         service: service,
@@ -120,7 +119,8 @@ function parseArgs(argv) {
         raw: argv.raw,
         timeout: argv.timeout,
         depth: argv.depth,
-        health: health
+        health: health,
+        shardKey: shardKey
     };
 }
 
@@ -209,10 +209,12 @@ function tcurl(opts) {
         var request = subChan.request({
             timeout: opts.timeout || 100,
             hasNoParent: true,
-            serviceName: opts.service,
-            headers: opts.transportHeaders
+            serviceName: opts.service
         });
         var sender;
+        if (opts.shardKey) {
+            request.headers.shardKey = opts.shardKey;
+        }
         if (opts.health) {
             var meta = new MetaClient({
                 channel: client,
