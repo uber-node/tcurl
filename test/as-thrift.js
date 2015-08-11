@@ -98,3 +98,43 @@ test('getting an ok response', function t(assert) {
     }
 
 });
+
+test('hitting non-existent endpoint', function t(assert) {
+
+    var serviceName = 'meta';
+    var server = new TChannel({
+        serviceName: serviceName
+    });
+
+    var hostname = '127.0.0.1';
+    var port = 4040;
+    var endpoint = 'Meta::health';
+    var nonexistentEndpoint = endpoint + 'Foo';
+
+    var tchannelAsThrift = TChannelAsThrift({source: meta});
+    tchannelAsThrift.register(server, endpoint, {}, noop);
+
+    server.listen(port, hostname, onListening);
+    function onListening() {
+        var cmd = [
+            '-p', hostname + ':' + port,
+            serviceName,
+            nonexistentEndpoint,
+            '-t', path.join(__dirname, '..')
+        ];
+
+        tcurl.exec(cmd, onResponse);
+
+        function onResponse(err, resp) {
+            assert.equal(err.message,
+                nonexistentEndpoint + ' endpoint does not exist',
+                'Warned about non-existent endpoint');
+
+            server.close();
+            assert.end();
+        }
+    }
+
+    function noop() {}
+
+});

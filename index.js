@@ -29,6 +29,7 @@ var minimist = require('minimist');
 var myLocalIp = require('my-local-ip');
 var DebugLogtron = require('debug-logtron');
 
+var fmt = require('util').format;
 var console = require('console');
 var process = require('process');
 var fs = require('fs');
@@ -52,44 +53,51 @@ if (require.main === module) {
 
 function execMain(str, cb) {
     main(minimist(str, {
-        boolean: ['raw']
+        boolean: ['raw'],
+        alias: {
+            h: 'help',
+            p: 'peer',
+            H: 'hostlist',
+            t: 'thrift',
+            2: ['arg2', 'head'],
+            3: ['arg3', 'body'],
+            j: ['J', 'json']
+        },
+        default: {
+            head: '',
+            body: ''
+        }
     }), cb);
 }
 
 function help() {
-    console.log('tcurl [-H <hostlist> | -p host:port] <service> <endpoint> [options]');
-    console.log('  ');
-    console.log('  Options: ');
-    // TODO @file; @- stdin.
-    console.log('    -2 [data] send an arg2 blob');
-    console.log('    -3 [data] send an arg3 blob');
-    console.log('    --depth=n configure inspect printing depth');
-    console.log('    -j print JSON');
-    console.log('    -J [indent] print JSON with indentation');
-    console.log('    -t [dir] directory containing Thrift files');
-    console.log('    --http method');
-    console.log('    --raw encode arg2 & arg3 raw');
-    console.log('    --health');
-    console.log('    --timeout [num]');
+    var helpMessage = [
+        'tcurl [-H <hostlist> | -p host:port] <service> <endpoint> [options]',
+        '  ',
+        '  Options: ',
+        // TODO @file; @- stdin.
+        '    -2 [data] send an arg2 blob',
+        '    -3 [data] send an arg3 blob',
+        '    --depth=n configure inspect printing depth',
+        '    -j print JSON',
+        '    -J [indent] print JSON with indentation',
+        '    -t [dir] directory containing Thrift files',
+        '    --http method',
+        '    --raw encode arg2 & arg3 raw',
+        '    --health',
+        '    --timeout [num]'
+    ].join('\n');
+    console.log(helpMessage);
     return;
 }
 
 function parseArgs(argv) {
-    var body = argv['3'] || argv.arg3 || '';
-    var head = argv['2'] || argv.arg2 || '';
-
-    var uri = argv.p || argv.peer;
-    var hostlist = argv.H || argv.hostlist;
-    var thrift = argv.t || argv.thrift;
-    var http = argv.http;
-    var json = argv.j || argv.J;
     var service = argv._[0];
     var endpoint = argv._[1];
     var health = argv.health;
 
-    if (hostlist) {
-        uri = JSON.parse(fs.readFileSync(hostlist))[0];
-    }
+    var uri = argv.hostlist ?
+        JSON.parse(fs.readFileSync(argv.hostlist))[0] : argv.peer;
 
     var parsedUri = url.parse('tchannel://' + uri);
 
@@ -103,15 +111,15 @@ function parseArgs(argv) {
     assert(service, 'service required');
 
     return {
-        head: head,
-        body: body,
+        head: argv.head,
+        body: argv.body,
         service: service,
         endpoint: endpoint,
         hostname: parsedUri.hostname,
         port: parsedUri.port,
-        thrift: thrift,
-        http: http,
-        json: json,
+        thrift: argv.thrift,
+        http: argv.http,
+        json: argv.json,
         raw: argv.raw,
         timeout: argv.timeout,
         depth: argv.depth,
@@ -121,7 +129,7 @@ function parseArgs(argv) {
 
 function main(argv, onResponse) {
     /*eslint no-console: 0 */
-    if (argv.h || argv.help || argv._.length === 0) {
+    if (argv.help || argv._.length === 0) {
         return help();
     }
 
@@ -150,7 +158,8 @@ function readThriftSpecDir(opts) {
         if (match) {
             var serviceName = match[1];
             var fileName = match[0];
-            specs[serviceName] = fs.readFileSync(path.join(opts.thrift, fileName), 'utf8');
+            var thriftFilepath = path.join(opts.thrift, fileName);
+            specs[serviceName] = fs.readFileSync(thriftFilepath, 'utf8');
         }
     });
 
@@ -163,11 +172,6 @@ function readThriftSpecDir(opts) {
 
 function tcurl(opts) {
     var logger = Logger(opts);
-    var spec;
-
-    if (opts.thrift) {
-        spec = readThriftSpec(opts);
-    }
 
     var client = TChannel({
         logger: DebugLogtron('tcurl')
@@ -205,7 +209,7 @@ function tcurl(opts) {
             hasNoParent: true,
             serviceName: opts.service
         });
-        var sender;
+
         if (opts.health) {
             var meta = new MetaClient({
                 channel: client,
@@ -213,43 +217,13 @@ function tcurl(opts) {
             });
             meta.health(request, opts.onResponse);
         } else if (opts.thrift) {
-            if (opts.body) {
-                opts.body = JSON.parse(opts.body);
-            }
-            if (opts.head) {
-                opts.head = JSON.parse(opts.head);
-            }
-
-            sender = new TChannelAsThrift({source: spec});
-            sender.send(request, opts.endpoint, opts.head,
-                opts.body, onResponse);
+            asThrift(opts, request, onResponse);
         } else if (opts.raw) {
-            request.headers.as = 'raw';
-            request.send(opts.endpoint, opts.head, opts.body,
-                onResponse);
+            asRaw(opts, request, onResponse);
         } else if (opts.http) {
-            var ashttp = TCurlAsHttp({
-                channel: client,
-                subChannel: subChan,
-                method: opts.http,
-                path: opts.endpoint,
-                headers: JSON.parse(opts.head),
-                body: JSON.parse(opts.body),
-                onResponse: onResponse,
-                logger: logger
-            });
-            ashttp.send();
+            asHTTP(opts, client, subChan, onResponse, logger);
         } else {
-            sender = new TChannelAsJSON();
-
-            if (opts.body) {
-                opts.body = JSON.parse(opts.body);
-            }
-            if (opts.head) {
-                opts.head = JSON.parse(opts.head);
-            }
-            sender.send(request, opts.endpoint, opts.head,
-                opts.body, onResponse);
+            asJSON(opts, request, onResponse);
         }
     }
 
@@ -285,4 +259,68 @@ function tcurl(opts) {
         logger.display('log', resp.body);
         client.quit();
     }
+}
+
+function asThrift(opts, request, onResponse) {
+    var spec = readThriftSpec(opts);
+
+    if (opts.body) {
+        opts.body = JSON.parse(opts.body);
+    }
+    if (opts.head) {
+        opts.head = JSON.parse(opts.head);
+    }
+
+    var sender = new TChannelAsThrift({source: spec});
+
+    // The following is a hack to produce a nice error message when
+    // the endpoint does not exist. It is a temporary solution based
+    // on the thriftify interface. How the existence of this endpoint
+    // is checked and this error thrown will change when we move to
+    // the thriftrw rewrite.
+    try {
+        sender.send(request, opts.endpoint, opts.head,
+            opts.body, onResponse);
+    } catch(e) {
+        if (e.message ===
+            fmt('type %s_args not found', opts.endpoint)) {
+            var emsg = fmt('%s endpoint does not exist', opts.endpoint);
+            onResponse(new Error(emsg));
+        } else {
+            throw e;
+        }
+    }
+}
+
+function asRaw(opts, request, onResponse) {
+    request.headers.as = 'raw';
+    request.send(opts.endpoint, opts.head, opts.body,
+        onResponse);
+}
+
+function asHTTP(opts, client, subChan, onResponse, logger) {
+    var ashttp = TCurlAsHttp({
+        channel: client,
+        subChannel: subChan,
+        method: opts.http,
+        path: opts.endpoint,
+        headers: JSON.parse(opts.head),
+        body: JSON.parse(opts.body),
+        onResponse: onResponse,
+        logger: logger
+    });
+    ashttp.send();
+}
+
+function asJSON(opts, request, onResponse) {
+    var sender = new TChannelAsJSON();
+
+    if (opts.body) {
+        opts.body = JSON.parse(opts.body);
+    }
+    if (opts.head) {
+        opts.head = JSON.parse(opts.head);
+    }
+    sender.send(request, opts.endpoint, opts.head,
+        opts.body, onResponse);
 }
