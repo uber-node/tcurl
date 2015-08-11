@@ -78,6 +78,7 @@ function help() {
         // TODO @file; @- stdin.
         '    -2 [data] send an arg2 blob',
         '    -3 [data] send an arg3 blob',
+        '    --shardKey send ringpop shardKey transport header',
         '    --depth=n configure inspect printing depth',
         '    -j print JSON',
         '    -J [indent] print JSON with indentation',
@@ -113,6 +114,7 @@ function parseArgs(argv) {
     return {
         head: argv.head,
         body: argv.body,
+        shardKey: argv.shardKey,
         service: service,
         endpoint: endpoint,
         hostname: parsedUri.hostname,
@@ -204,10 +206,13 @@ function tcurl(opts) {
             return onResponse(err);
         }
 
+        var headers = opts.shardKey ? {sk: opts.shardKey} : {};
+
         var request = subChan.request({
             timeout: opts.timeout || 100,
             hasNoParent: true,
-            serviceName: opts.service
+            serviceName: opts.service,
+            headers: headers
         });
 
         if (opts.health) {
