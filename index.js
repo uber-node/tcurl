@@ -95,6 +95,7 @@ function parseArgs(argv) {
     var service = argv._[0];
     var endpoint = argv._[1];
     var health = argv.health;
+    var shardKey = argv.shardKey
 
     var uri = argv.hostlist ?
         JSON.parse(fs.readFileSync(argv.hostlist))[0] : argv.peer;
@@ -208,8 +209,7 @@ function tcurl(opts) {
         var request = subChan.request({
             timeout: opts.timeout || 100,
             hasNoParent: true,
-            serviceName: opts.service,
-            headers: opts.transportHeaders
+            serviceName: opts.service
         });
 
         if (opts.shardKey) {
