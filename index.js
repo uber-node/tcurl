@@ -95,7 +95,6 @@ function parseArgs(argv) {
     var service = argv._[0];
     var endpoint = argv._[1];
     var health = argv.health;
-    var shardKey = argv.shardKey
 
     var uri = argv.hostlist ?
         JSON.parse(fs.readFileSync(argv.hostlist))[0] : argv.peer;
