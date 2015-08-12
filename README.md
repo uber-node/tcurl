@@ -11,15 +11,19 @@
 A command line utility to talk to a tchannel server
 
 ```
-tcurl -p host:port <service> <endpoint> [options]
-
-  Options:
-    -2 [data] send an arg2 blob
-    -3 [data] send an arg3 blob
-    --depth=n configure inspect printing depth
-    -j print JSON
-    -J [indent] print JSON with indentation
-    -t [dir] directory containing Thrift files
+tcurl [-H <hostlist> | -p host:port] <service> <endpoint> [options]
+  
+  Options: 
+    -2 [data]        send an arg2 blob
+    -3 [data]        send an arg3 blob
+    --shardKey       send ringpop shardKey transport header
+    --depth=n        configure inspect printing depth
+    -j               print JSON
+    -t [dir]         directory containing Thrift files
+    --http [method]  use tchannel as http with specified HTTP method
+    --raw            encode arg2 & arg3 raw
+    --health         query the Meta::health endpoint
+    --timeout [num]  set a query timeout
 ```
 
 ## Installation

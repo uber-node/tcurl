@@ -76,16 +76,16 @@ function help() {
         '  ',
         '  Options: ',
         // TODO @file; @- stdin.
-        '    -2 [data] send an arg2 blob',
-        '    -3 [data] send an arg3 blob',
-        '    --depth=n configure inspect printing depth',
-        '    -j print JSON',
-        '    -J [indent] print JSON with indentation',
-        '    -t [dir] directory containing Thrift files',
-        '    --http method',
-        '    --raw encode arg2 & arg3 raw',
-        '    --health',
-        '    --timeout [num]'
+        '    -2 [data]        send an arg2 blob',
+        '    -3 [data]        send an arg3 blob',
+        '    --shardKey       send ringpop shardKey transport header',
+        '    --depth=n        configure inspect printing depth',
+        '    -j               print JSON',
+        '    -t [dir]         directory containing Thrift files',
+        '    --http [method]  use tchannel as http with specified HTTP method',
+        '    --raw            encode arg2 & arg3 raw',
+        '    --health         query the Meta::health endpoint',
+        '    --timeout [num]  set a query timeout'
     ].join('\n');
     console.log(helpMessage);
     return;
@@ -123,7 +123,8 @@ function parseArgs(argv) {
         raw: argv.raw,
         timeout: argv.timeout,
         depth: argv.depth,
-        health: health
+        health: health,
+        shardKey: argv.shardKey
     };
 }
 
@@ -209,6 +210,10 @@ function tcurl(opts) {
             hasNoParent: true,
             serviceName: opts.service
         });
+
+        if (opts.shardKey) {
+            request.headers.shardKey = opts.shardKey;
+        }
 
         if (opts.health) {
             var meta = new MetaClient({
