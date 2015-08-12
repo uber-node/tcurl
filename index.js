@@ -45,29 +45,29 @@ main.exec = execMain;
 
 module.exports = main;
 
+var minimistArgs = {
+    boolean: ['raw'],
+    alias: {
+        h: 'help',
+        p: 'peer',
+        H: 'hostlist',
+        t: 'thrift',
+        2: ['arg2', 'head'],
+        3: ['arg3', 'body'],
+        j: ['J', 'json']
+    },
+    default: {
+        head: '',
+        body: ''
+    }
+};
+
 if (require.main === module) {
-    main(minimist(process.argv.slice(2), {
-        boolean: ['raw']
-    }));
+    main(minimist(process.argv.slice(2), minimistArgs));
 }
 
 function execMain(str, cb) {
-    main(minimist(str, {
-        boolean: ['raw'],
-        alias: {
-            h: 'help',
-            p: 'peer',
-            H: 'hostlist',
-            t: 'thrift',
-            2: ['arg2', 'head'],
-            3: ['arg3', 'body'],
-            j: ['J', 'json']
-        },
-        default: {
-            head: '',
-            body: ''
-        }
-    }), cb);
+    main(minimist(str, minimistArgs), cb);
 }
 
 function help() {
@@ -243,7 +243,6 @@ function tcurl(opts) {
 
         if (err) {
             logger.log('error', err);
-            logger.log('error', err.message);
             /*eslint no-process-exit: 0*/
             process.exit(1);
         }
