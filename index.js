@@ -302,7 +302,7 @@ function asHTTP(opts, client, subChan, onResponse, logger) {
         channel: client,
         subChannel: subChan,
         method: opts.http,
-        path: opts.endpoint,
+        endpoint: opts.endpoint,
         headers: JSON.parse(opts.head),
         body: JSON.parse(opts.body),
         onResponse: onResponse,

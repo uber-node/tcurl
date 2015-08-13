@@ -39,6 +39,8 @@ test('getting an ok response', function t(assert) {
     });
     var httpServer = http.createServer(
         function onRequest(hreq, hres) {
+            assert.equal(hreq.url, '/echo');
+
             assert.equals(hreq.headers.special, 'CQ', 'header should be CQ');
             hreq.on('data', function onData(chunk) {
                 assert.equals(

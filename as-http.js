@@ -42,7 +42,7 @@ function TCurlAsHttp(options) {
     self.asHttpClient = TChannelAsHTTP();
     self.method = options.method;
     self.headers = options.headers;
-    self.path = options.endpoint;
+    self.endpoint = options.endpoint;
     self.body = options.body;
     self.onResponse = options.onResponse;
 }
@@ -52,7 +52,7 @@ TCurlAsHttp.prototype.send = function send() {
 
     var hreq = PassThrough();
     hreq.end(self.body);
-    hreq.path = self.endpoint;
+    hreq.url = self.endpoint;
     hreq.method = self.method;
     hreq.headers = self.headers;
 
