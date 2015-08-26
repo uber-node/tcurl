@@ -49,7 +49,9 @@ service Chamber {
 
 You could use TCurl to query this service by running:
 
-`tcurl -p localhost:1234 chamber Chamber::echo -t ./services -3 '{"request": {"input": "foo"}}'
+```
+tcurl -p localhost:1234 chamber Chamber::echo -t ./services -3 '{"request": {"input": "foo"}}'
+```
 
 ## `localhost` caveat
 
