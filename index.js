@@ -37,6 +37,8 @@ var path = require('path');
 var url = require('url');
 var assert = require('assert');
 
+var safeJsonParse = require('safe-json-parse/tuple');
+
 var Logger = require('./log');
 var TCurlAsHttp = require('./as-http');
 var MetaClient = require('./meta-client');
@@ -111,6 +113,8 @@ function parseArgs(argv) {
     assert(health || endpoint, 'endpoint required');
     assert(service, 'service required');
 
+    parseJsonArgs(argv);
+
     return {
         head: argv.head,
         body: argv.body,
@@ -138,6 +142,43 @@ function main(argv, onResponse) {
     var opts = parseArgs(argv);
     opts.onResponse = onResponse;
     tcurl(opts);
+}
+
+function jsonParseError(message, json, err) {
+    console.log(message + ' It should be JSON formatted.', {
+        JSON: json,
+        exitCode: -1,
+        error: err
+    });
+    process.exit(-1);
+}
+
+function parseJsonArgs(opts) {
+    if (opts.raw) {
+        return;
+    }
+
+    var tuple = null;
+    if (opts.body) {
+        tuple = safeJsonParse(opts.body);
+        opts.body = tuple[1] || opts.body;
+    }
+    if (tuple && tuple[0]) {
+        jsonParseError('Failed to JSON parse arg3 (i.e. request body).',
+            opts.body,
+            tuple[0]);
+    }
+
+    tuple = null;
+    if (opts.head) {
+        tuple = safeJsonParse(opts.head);
+        opts.head = tuple[1] || opts.head;
+    }
+    if (tuple && tuple[0]) {
+        jsonParseError('Failed to JSON parse arg2 (i.e. request head).',
+            opts.head,
+            tuple[0]);
+    }
 }
 
 function readThriftSpec(opts) {
@@ -268,13 +309,6 @@ function tcurl(opts) {
 function asThrift(opts, request, onResponse) {
     var spec = readThriftSpec(opts);
 
-    if (opts.body) {
-        opts.body = JSON.parse(opts.body);
-    }
-    if (opts.head) {
-        opts.head = JSON.parse(opts.head);
-    }
-
     var sender = new TChannelAsThrift({source: spec});
 
     // The following is a hack to produce a nice error message when
@@ -308,8 +342,8 @@ function asHTTP(opts, client, subChan, onResponse, logger) {
         subChannel: subChan,
         method: opts.http,
         endpoint: opts.endpoint,
-        headers: JSON.parse(opts.head),
-        body: JSON.parse(opts.body),
+        headers: opts.head,
+        body: opts.body,
         onResponse: onResponse,
         logger: logger
     });
@@ -318,13 +352,6 @@ function asHTTP(opts, client, subChan, onResponse, logger) {
 
 function asJSON(opts, request, onResponse) {
     var sender = new TChannelAsJSON();
-
-    if (opts.body) {
-        opts.body = JSON.parse(opts.body);
-    }
-    if (opts.head) {
-        opts.head = JSON.parse(opts.head);
-    }
     sender.send(request, opts.endpoint, opts.head,
         opts.body, onResponse);
 }

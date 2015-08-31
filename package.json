@@ -25,6 +25,7 @@
     "my-local-ip": "^1.0.0",
     "process": "^0.11.0",
     "readable-stream": "^1.0.33",
+    "safe-json-parse": "^4.0.0",
     "tchannel": "^2.1.2"
   },
   "devDependencies": {
