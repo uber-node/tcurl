@@ -147,7 +147,7 @@ function main(argv, onResponse) {
 }
 
 function reportError(message, err) {
-    console.log(message);
+    console.error(message);
     if (!throwOnError) {
         process.exit(-1);
     } else {
@@ -156,7 +156,7 @@ function reportError(message, err) {
 }
 
 function jsonParseError(message, json, err) {
-    console.log(message + ' It should be JSON formatted.', {
+    console.error(message + ' It should be JSON formatted.', {
         JSON: json,
         exitCode: -1,
         error: err
