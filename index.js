@@ -250,16 +250,9 @@ function tcurl(opts) {
         }
     });
 
-    client.on('listening', onListen);
-    client.listen(0, '127.0.0.1');
-
-    function onListen() {
-        client.removeListener('listening', onListen);
-
-        client.waitForIdentified({
-            host: opts.hostname + ':' + opts.port
-        }, onIdentified);
-    }
+    client.waitForIdentified({
+        host: opts.hostname + ':' + opts.port
+    }, onIdentified);
 
     function onIdentified(err) {
         if (err) {
