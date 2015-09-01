@@ -64,7 +64,9 @@ var minimistArgs = {
     }
 };
 
+var throwOnError = true;
 if (require.main === module) {
+    throwOnError = false;
     main(minimist(process.argv.slice(2), minimistArgs));
 }
 
@@ -144,13 +146,27 @@ function main(argv, onResponse) {
     tcurl(opts);
 }
 
+function reportError(message, err) {
+    console.error(message);
+    if (!throwOnError) {
+        process.exit(-1);
+    } else {
+        throw err;
+    }
+}
+
 function jsonParseError(message, json, err) {
-    console.log(message + ' It should be JSON formatted.', {
+    console.error(message + ' It should be JSON formatted.', {
         JSON: json,
         exitCode: -1,
         error: err
     });
-    process.exit(-1);
+
+    if (!throwOnError) {
+        process.exit(-1);
+    } else {
+        throw err;
+    }
 }
 
 function parseJsonArgs(opts) {
@@ -186,7 +202,8 @@ function readThriftSpec(opts) {
         return fs.readFileSync(opts.thrift, 'utf8');
     } catch(err) {
         if (err.code !== 'EISDIR') {
-            throw err;
+            reportError('Failed to read thrift file "' +
+                opts.thrift + '"', err);
         }
     }
 
@@ -207,7 +224,9 @@ function readThriftSpecDir(opts) {
     });
 
     if (!specs[opts.service]) {
-        throw new Error('Spec for service unavailable: ' + opts.service);
+        var err = new Error('Spec for service "' +
+            opts.service + '" unavailable in directory "' + opts.thrift + '"');
+        reportError(err.message, err);
     }
 
     return specs[opts.service];
@@ -325,7 +344,9 @@ function asThrift(opts, request, onResponse) {
             var emsg = fmt('%s endpoint does not exist', opts.endpoint);
             onResponse(new Error(emsg));
         } else {
-            throw e;
+            var msg = e.message || '';
+            reportError('Error response received for the as-thrift request. '
+                + msg, e);
         }
     }
 }
