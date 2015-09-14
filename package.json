@@ -26,7 +26,7 @@
     "process": "^0.11.0",
     "readable-stream": "^1.0.33",
     "safe-json-parse": "^4.0.0",
-    "tchannel": "^2.1.2"
+    "tchannel": "2.9.3"
   },
   "devDependencies": {
     "coveralls": "^2.10.0",
