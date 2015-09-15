@@ -114,8 +114,9 @@ function parseArgs(argv) {
     assert(parsedUri.port, 'port required');
     assert(health || endpoint, 'endpoint required');
     assert(service, 'service required');
+    var logger = Logger(argv);
 
-    parseJsonArgs(argv);
+    parseJsonArgs(argv, logger);
 
     return {
         head: argv.head,
@@ -131,7 +132,8 @@ function parseArgs(argv) {
         raw: argv.raw,
         timeout: argv.timeout,
         depth: argv.depth,
-        health: health
+        health: health,
+        logger: logger
     };
 }
 
@@ -146,8 +148,15 @@ function main(argv, onResponse) {
     tcurl(opts);
 }
 
-function reportError(message, err) {
-    console.error(message);
+function reportError(logger, message, err) {
+    logger.display('error', message, {
+        error: {
+            message: err.message,
+            type: err.type,
+            arguments: err.arguments,
+            name: err.name
+        }
+    });
     if (!throwOnError) {
         process.exit(-1);
     } else {
@@ -155,11 +164,16 @@ function reportError(message, err) {
     }
 }
 
-function jsonParseError(message, json, err) {
-    console.error(message + ' It should be JSON formatted.', {
+function jsonParseError(logger, message, json, err) {
+    logger.display('error', message + ' It should be JSON formatted.', {
         JSON: json,
         exitCode: -1,
-        error: err
+        error: {
+            message: err.message,
+            type: err.type,
+            arguments: err.arguments,
+            name: err.name
+        }
     });
 
     if (!throwOnError) {
@@ -169,7 +183,7 @@ function jsonParseError(message, json, err) {
     }
 }
 
-function parseJsonArgs(opts) {
+function parseJsonArgs(opts, logger) {
     if (opts.raw) {
         return;
     }
@@ -180,7 +194,8 @@ function parseJsonArgs(opts) {
         opts.body = tuple[1] || opts.body;
     }
     if (tuple && tuple[0]) {
-        jsonParseError('Failed to JSON parse arg3 (i.e. request body).',
+        jsonParseError(logger,
+            'Failed to JSON parse arg3 (i.e. request body).',
             opts.body,
             tuple[0]);
     }
@@ -191,7 +206,8 @@ function parseJsonArgs(opts) {
         opts.head = tuple[1] || opts.head;
     }
     if (tuple && tuple[0]) {
-        jsonParseError('Failed to JSON parse arg2 (i.e. request head).',
+        jsonParseError(logger,
+            'Failed to JSON parse arg2 (i.e. request head).',
             opts.head,
             tuple[0]);
     }
@@ -202,7 +218,7 @@ function readThriftSpec(opts) {
         return fs.readFileSync(opts.thrift, 'utf8');
     } catch(err) {
         if (err.code !== 'EISDIR') {
-            reportError('Failed to read thrift file "' +
+            reportError(opts.logger, 'Failed to read thrift file "' +
                 opts.thrift + '"', err);
         }
     }
@@ -226,14 +242,14 @@ function readThriftSpecDir(opts) {
     if (!specs[opts.service]) {
         var err = new Error('Spec for service "' +
             opts.service + '" unavailable in directory "' + opts.thrift + '"');
-        reportError(err.message, err);
+        reportError(opts.logger, err.message, err);
     }
 
     return specs[opts.service];
 }
 
 function tcurl(opts) {
-    var logger = Logger(opts);
+    var logger = opts.logger;
 
     var client = TChannel({
         logger: DebugLogtron('tcurl')
@@ -299,22 +315,20 @@ function tcurl(opts) {
             return;
         }
 
+        client.quit();
+
         if (err) {
-            logger.log('error', err);
+            logger.displayResponse('error', 'Got an error response', err);
             /*eslint no-process-exit: 0*/
             process.exit(1);
-        }
-
-        if (!resp.ok) {
-            logger.log('error', 'Got call response not ok');
-            logger.log('error', resp.body);
+        } else if (!resp.ok) {
+            logger.displayResponse('error',
+                'Got call response not ok', resp.body);
             process.exit(1);
         } else {
-            logger.display('log', 'Got call response ok');
+            logger.displayResponse('log',
+                'Got call response ok', resp.body);
         }
-
-        logger.display('log', resp.body);
-        client.quit();
     }
 }
 
@@ -338,7 +352,8 @@ function asThrift(opts, request, onResponse) {
             onResponse(new Error(emsg));
         } else {
             var msg = e.message || '';
-            reportError('Error response received for the as-thrift request. '
+            reportError(opts.logger,
+                'Error response received for the as-thrift request. '
                 + msg, e);
         }
     }
