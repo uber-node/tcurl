@@ -43,6 +43,8 @@ var Logger = require('./log');
 var TCurlAsHttp = require('./as-http');
 var MetaClient = require('./meta-client');
 
+var packageJson = require('./package.json');
+
 main.exec = execMain;
 
 module.exports = main;
@@ -78,6 +80,7 @@ function help() {
     var helpMessage = [
         'tcurl [-H <hostlist> | -p host:port] <service> <endpoint> [options]',
         '  ',
+        '  Version: ' + packageJson.version,
         '  Options: ',
         // TODO @file; @- stdin.
         '    -2 [data] send an arg2 blob',
