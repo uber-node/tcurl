@@ -30,6 +30,7 @@ var TChannel = require('tchannel');
 var TChannelAsThrift = require('tchannel/as/thrift.js');
 
 var meta = fs.readFileSync(path.join(__dirname, '..', 'meta.thrift'), 'utf-8');
+var legacy = fs.readFileSync(path.join(__dirname, 'legacy.thrift'), 'utf-8');
 
 test('getting an ok response', function t(assert) {
 
@@ -135,6 +136,84 @@ test('hitting non-existent endpoint', function t(assert) {
         }
     }
 
-    function noop() {}
+});
+
+test('fails to run for invalid thrift', function t(assert) {
+
+    var serviceName = 'meta';
+    var server = new TChannel({
+        serviceName: serviceName
+    });
+
+    var hostname = '127.0.0.1';
+    var port = 4040;
+
+    server.listen(port, hostname, onListening);
+
+    function onListening() {
+
+        var cmd = [
+            '-p', '127.0.0.1:4040',
+            'no-service',
+            'no-endpoint',
+            '-t', path.join(__dirname, 'legacy.thrift')
+        ];
+
+        tcurl.exec(cmd, afterExec);
+    }
+
+    function afterExec(err) {
+        if (!err) {
+            assert.fail('expected error');
+            return assert.end();
+        }
+        assert.equal(err.message,
+            'Error parsing Thrift IDL: every field must be marked optional, ' +
+            'required, or have a default value on Feckless including ' +
+            '"ambiguity" in strict mode', 'expected thrift IDL validation error');
+        server.close();
+        assert.end();
+    }
 
 });
+
+test('tolerates loose thrift with --no-strict', function t(assert) {
+
+    var serviceName = 'legacy';
+    var server = new TChannel({
+        serviceName: serviceName
+    });
+
+    var hostname = '127.0.0.1';
+    var port = 4040;
+
+    server.listen(port, hostname, onListening);
+
+    var tchannelAsThrift = TChannelAsThrift({source: legacy , strict: false});
+    tchannelAsThrift.register(server, 'Pinger::ping', {}, ping);
+
+    function onListening() {
+
+        var cmd = [
+            '-p', '127.0.0.1:4040',
+            'legacy',
+            'Pinger::ping',
+            '--no-strict',
+            '-t', path.join(__dirname, 'legacy.thrift')
+        ];
+
+        tcurl.exec(cmd, afterExec);
+    }
+
+    function afterExec(err) {
+        server.close();
+        assert.end(err);
+    }
+
+});
+
+function ping(options, req, head, body, cb) {
+    cb(null, {ok: true, head: null, body: null});
+}
+
+function noop() {}

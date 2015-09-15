@@ -74,7 +74,9 @@ function display(level, message, fields) {
 
 Logger.prototype._display = function _display(level, value) {
     var self = this;
-    if (self.options.json) {
+    if (typeof value === 'string') {
+        self.log(level, value);
+    } else if (self.options.json) {
         self.log(level, JSON.stringify(value, null, self.options.json));
     } else if (self.options.raw) {
         self.log(level, String(value));
