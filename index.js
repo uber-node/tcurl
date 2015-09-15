@@ -338,7 +338,7 @@ function tcurl(opts) {
 function asThrift(opts, request, onResponse) {
     var spec = readThriftSpec(opts);
 
-    var sender = new TChannelAsThrift({source: spec});
+    var sender = new TChannelAsThrift({source: spec, strict: false});
 
     // The following is a hack to produce a nice error message when
     // the endpoint does not exist. It is a temporary solution based
