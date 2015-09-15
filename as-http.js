@@ -62,7 +62,7 @@ TCurlAsHttp.prototype.send = function send() {
     });
     self.asHttpClient.sendRequest(req, hreq, onSent);
 
-    function onSent(err, head, body) {
+    function onSent(err, head, stream, body) {
         if (err) {
             if (self.onResponse) {
                 return self.onResponse(err);
@@ -75,15 +75,24 @@ TCurlAsHttp.prototype.send = function send() {
         }
 
         var str = '';
-        body.on('data', function onData(chunk) {
-            str += chunk;
-        });
-        body.on('end', function onEnd() {
+        if (body) {
+            str = body.toString();
+            done();
+        } else {
+            stream.on('data', function onData(chunk) {
+                str += chunk;
+            });
+            stream.on('end', function onEnd() {
+                done();
+            });
+        }
+
+        function done() {
             if (self.onResponse) {
                 return self.onResponse(null, str);
             }
 
             self.logger.display('log', str);
-        });
+        }
     }
 };

@@ -60,7 +60,8 @@ test('getting an ok response', function t(assert) {
                 port: 8081
             },
             req,
-            res
+            res,
+            function noop() {}
         );
     });
 
