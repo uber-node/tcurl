@@ -38,7 +38,41 @@ function Logger(options) {
     self.options.depth = options.depth;
 }
 
-Logger.prototype.display = function display(level, value) {
+Logger.prototype.displayResponse =
+function displayResponse(level, message, value) {
+    var self = this;
+
+    if (self.options.json) {
+        self.display(level, {
+            message: message,
+            response: value
+        });
+    } else {
+        self.display(level, message);
+        self.display(level, value);
+    }
+};
+
+Logger.prototype.display =
+function display(level, message, fields) {
+    var self = this;
+    if (!fields) {
+        self._display(level, message);
+        return;
+    }
+
+    if (self.options.json) {
+        self.display(level, {
+            message: message,
+            fields: fields
+        });
+    } else {
+        self.display('error', message);
+        self.display('error', fields);
+    }
+};
+
+Logger.prototype._display = function _display(level, value) {
     var self = this;
     if (self.options.json) {
         self.log(level, JSON.stringify(value, null, self.options.json));
