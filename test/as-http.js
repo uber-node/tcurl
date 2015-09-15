@@ -61,7 +61,11 @@ test('getting an ok response', function t(assert) {
             },
             req,
             res,
-            function noop() {}
+            function forwarded(err) {
+                if (err) {
+                    assert.end(err);
+                }
+            }
         );
     });
 
