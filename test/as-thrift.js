@@ -189,7 +189,7 @@ test('tolerates loose thrift with --no-strict', function t(assert) {
 
     server.listen(port, hostname, onListening);
 
-    var tchannelAsThrift = TChannelAsThrift({source: legacy , strict: false});
+    var tchannelAsThrift = TChannelAsThrift({source: legacy, strict: false});
     tchannelAsThrift.register(server, 'Pinger::ping', {}, ping);
 
     function onListening() {

@@ -309,10 +309,11 @@ function tcurl(opts, callback) {
         callback(err, resp, arg2, arg3);
     }
 
-    function defaultCallback(err) {
+    function defaultCallback(err, resp) {
         if (err && err.type === 'thrift-parse-error') {
             logger.display('error', err.message);
-            logger.display('error', 'Consider using --no-strict to bypass mandatory optional/required field assertions');
+            logger.display('error',
+                'Consider using --no-strict to bypass mandatory optional/required field assertions');
         }
         if (err && err.exitCode) {
             process.exit(err.exitCode);
