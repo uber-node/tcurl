@@ -50,7 +50,7 @@ main.exec = execMain;
 module.exports = main;
 
 var minimistArgs = {
-    boolean: ['raw'],
+    boolean: ['raw', 'strict'],
     alias: {
         h: 'help',
         p: 'peer',
@@ -62,13 +62,12 @@ var minimistArgs = {
     },
     default: {
         head: '',
-        body: ''
+        body: '',
+        strict: true
     }
 };
 
-var throwOnError = true;
 if (require.main === module) {
-    throwOnError = false;
     main(minimist(process.argv.slice(2), minimistArgs));
 }
 
@@ -90,6 +89,7 @@ function help() {
         '    -j print JSON',
         '    -J [indent] print JSON with indentation',
         '    -t [dir] directory containing Thrift files',
+        '    --no-strict parse Thrift loosely',
         '    --http method',
         '    --raw encode arg2 & arg3 raw',
         '    --health',
@@ -130,6 +130,7 @@ function parseArgs(argv) {
         hostname: parsedUri.hostname,
         port: parsedUri.port,
         thrift: argv.thrift,
+        strict: argv.strict,
         http: argv.http,
         json: argv.json,
         raw: argv.raw,
@@ -147,8 +148,7 @@ function main(argv, onResponse) {
     }
 
     var opts = parseArgs(argv);
-    opts.onResponse = onResponse;
-    tcurl(opts);
+    tcurl(opts, onResponse);
 }
 
 function reportError(logger, message, err) {
@@ -160,11 +160,6 @@ function reportError(logger, message, err) {
             name: err.name
         }
     });
-    if (!throwOnError) {
-        process.exit(-1);
-    } else {
-        throw err;
-    }
 }
 
 function jsonParseError(logger, message, json, err) {
@@ -178,12 +173,6 @@ function jsonParseError(logger, message, json, err) {
             name: err.name
         }
     });
-
-    if (!throwOnError) {
-        process.exit(-1);
-    } else {
-        throw err;
-    }
 }
 
 function parseJsonArgs(opts, logger) {
@@ -223,6 +212,7 @@ function readThriftSpec(opts) {
         if (err.code !== 'EISDIR') {
             reportError(opts.logger, 'Failed to read thrift file "' +
                 opts.thrift + '"', err);
+            return null;
         }
     }
 
@@ -246,12 +236,14 @@ function readThriftSpecDir(opts) {
         var err = new Error('Spec for service "' +
             opts.service + '" unavailable in directory "' + opts.thrift + '"');
         reportError(opts.logger, err.message, err);
+        return null;
     }
 
     return specs[opts.service];
 }
 
-function tcurl(opts) {
+function tcurl(opts, callback) {
+    callback = callback || defaultCallback;
     var logger = opts.logger;
 
     var client = TChannel({
@@ -292,7 +284,7 @@ function tcurl(opts) {
                 channel: client,
                 logger: logger
             });
-            meta.health(request, opts.onResponse);
+            meta.health(request, callback);
         } else if (opts.thrift) {
             asThrift(opts, request, onResponse);
         } else if (opts.raw) {
@@ -305,6 +297,8 @@ function tcurl(opts) {
     }
 
     function onResponse(err, resp, arg2, arg3) {
+        client.quit();
+
         if (arg2 !== undefined && resp) {
             resp.head = arg2;
         }
@@ -312,19 +306,23 @@ function tcurl(opts) {
             resp.body = arg3;
         }
 
-        if (opts.onResponse) {
-            opts.onResponse(err, resp, arg2, arg3);
-            client.quit();
-            return;
+        callback(err, resp, arg2, arg3);
+    }
+
+    function defaultCallback(err) {
+        if (err && err.type === 'thrift-parse-error') {
+            logger.display('error', err.message);
+            logger.display('error', 'Consider using --no-strict to bypass mandatory optional/required field assertions');
         }
-
-        client.quit();
-
+        if (err && err.exitCode) {
+            process.exit(err.exitCode);
+        }
         if (err) {
             logger.displayResponse('error', 'Got an error response', err);
             /*eslint no-process-exit: 0*/
             process.exit(1);
-        } else if (!resp.ok) {
+        }
+        if (!resp.ok) {
             logger.displayResponse('error',
                 'Got call response not ok', resp.body);
             process.exit(1);
@@ -333,12 +331,25 @@ function tcurl(opts) {
                 'Got call response ok', resp.body);
         }
     }
+
 }
 
 function asThrift(opts, request, onResponse) {
     var spec = readThriftSpec(opts);
 
-    var sender = new TChannelAsThrift({source: spec});
+    if (spec === null) {
+        return onResponse({exitCode: 1});
+    }
+
+    var sender;
+    try {
+        sender = new TChannelAsThrift({source: spec, strict: opts.strict});
+    } catch (err) {
+        err.message = 'Error parsing Thrift IDL: ' + err.message;
+        err.type = 'thrift-parse-error';
+        err.exitCode = 1;
+        return onResponse(err);
+    }
 
     // The following is a hack to produce a nice error message when
     // the endpoint does not exist. It is a temporary solution based
@@ -358,6 +369,7 @@ function asThrift(opts, request, onResponse) {
             reportError(opts.logger,
                 'Error response received for the as-thrift request. '
                 + msg, e);
+            return onResponse(e);
         }
     }
 }
