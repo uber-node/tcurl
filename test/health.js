@@ -20,7 +20,9 @@
 
 'use strict';
 
-/* jshint maxparams:5 */
+/*global console */
+/*eslint no-console: [0] */
+/*eslint max-params: [2, 5] */
 
 var test = require('tape');
 var tcurl = require('../index.js');
@@ -78,8 +80,8 @@ test('getting an ok', function t(assert) {
 
         tcurl.exec(cmd, onResponse);
 
-        function onResponse(msg) {
-            assert.equals(msg, 'ok', 'should be ok');
+        function onResponse(err) {
+            assert.equals(err.exitCode, 0, 'should be ok');
             server.close();
             assert.end();
         }
@@ -110,8 +112,10 @@ test('getting a notOk', function t(assert) {
 
         tcurl.exec(cmd, onResponse);
 
-        function onResponse(msg) {
-            assert.equals(msg, 'notOk\nhaving a bad day!', 'should be notOk');
+        function onResponse(err, resp) {
+            assert.equals(err.exitCode, 1, 'exits with code 1');
+            assert.equals(resp.body.ok, false, 'not ok');
+            assert.equals(resp.body.message, 'having a bad day!', 'should be notOk');
             server.close();
             assert.end();
         }
@@ -142,8 +146,8 @@ test('getting an error', function t(assert) {
 
         tcurl.exec(cmd, onResponse);
 
-        function onResponse(msg) {
-            assert.equals(msg, 'notOk', 'should be notOk');
+        function onResponse(err, resp) {
+            assert.equals(err.exitCode, 1, 'should exit with code 1');
             server.close();
             assert.end();
         }
@@ -185,6 +189,7 @@ test('test healthy endpoint with subprocess', function t(assert) {
             assert.equal(line, 'ok\n', 'expected stdout');
         }
         function onStderr(line) {
+            console.error(line);
             assert.fail('no stderr expected');
         }
 
@@ -232,6 +237,7 @@ test('test un-healthy endpoint with subprocess', function t(assert) {
             assert.equal(line, 'notOk\nhaving a bad day!\n', 'expected stdout');
         }
         function onStderr(line) {
+            console.error(line);
             assert.fail('no stderr expected');
         }
 

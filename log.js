@@ -26,61 +26,52 @@ var console = require('console');
 var util = require('util');
 module.exports = Logger;
 
-function Logger(options) {
-    if (!(this instanceof Logger)) {
-        return new Logger(options);
-    }
-
-    var self = this;
-    self.options = {};
-    self.options.json = options.json;
-    self.options.raw = options.raw;
-    self.options.depth = options.depth;
+function Logger() {
 }
 
 Logger.prototype.displayResponse =
-function displayResponse(level, message, value) {
+function displayResponse(level, message, opts, value) {
     var self = this;
 
-    if (self.options.json) {
+    if (opts.json) {
         self.display(level, {
             message: message,
             response: value
-        });
+        }, opts);
     } else {
-        self.display(level, message);
-        self.display(level, value);
+        self.display(level, message, opts);
+        self.display(level, value, opts);
     }
 };
 
 Logger.prototype.display =
-function display(level, message, fields) {
+function display(level, message, opts, fields) {
     var self = this;
     if (!fields) {
-        self._display(level, message);
+        self._display(level, message, opts);
         return;
     }
 
-    if (self.options.json) {
+    if (opts.json) {
         self.display(level, {
             message: message,
             fields: fields
-        });
+        }, opts);
     } else {
-        self.display('error', message);
-        self.display('error', fields);
+        self.display('error', message, opts);
+        self.display('error', fields, opts);
     }
 };
 
-Logger.prototype._display = function _display(level, value) {
+Logger.prototype._display = function _display(level, value, opts) {
     var self = this;
-    if (self.options.json) {
-        self.log(level, JSON.stringify(value, null, self.options.json));
-    } else if (self.options.raw) {
+    if (opts.json) {
+        self.log(level, JSON.stringify(value, null, opts.json));
+    } else if (opts.raw) {
         self.log(level, String(value));
     } else {
         self.log(level, util.inspect(value, {
-            depth: self.options.depth || 2
+            depth: opts.depth || 2
         }));
     }
 };
