@@ -27,6 +27,7 @@ var tcurl = require('../index.js');
 var TChannel = require('tchannel');
 var TChannelAsThrift = require('tchannel/as/thrift');
 var fs = require('fs');
+var spawn = require('child_process').spawn;
 var path = require('path');
 var thriftText = fs.readFileSync(
     path.join(__dirname, '../meta.thrift'), 'utf8'
@@ -146,5 +147,99 @@ test('getting an error', function t(assert) {
             server.close();
             assert.end();
         }
+    }
+});
+
+test('test healthy endpoint with subprocess', function t(assert) {
+
+    var server = new TChannel({
+        serviceName: 'server'
+    });
+    var opts = {
+        isOptions: true
+    };
+
+    var hostname = '127.0.0.1';
+    var port = 4040;
+    var endpoint = 'Meta::health';
+    var serviceName = 'server';
+    asThrift.register(server, endpoint, opts, goodHealth);
+    server.listen(port, hostname, onListening);
+    function onListening() {
+        var cmd = [
+            path.join(__dirname, '..', 'index.js'),
+            '-p', hostname + ':' + port,
+            serviceName,
+            null,
+            '--health'
+        ];
+
+        var proc = spawn('node', cmd);
+        proc.on('exit', onExit);
+
+        function onExit(code) {
+            server.close();
+            assert.equal(code, 0, 'exits with status 0');
+            assert.end();
+        }
+
+    }
+});
+
+test('test un-healthy endpoint with subprocess', function t(assert) {
+
+    var server = new TChannel({
+        serviceName: 'server'
+    });
+    var opts = {
+        isOptions: true
+    };
+
+    var hostname = '127.0.0.1';
+    var port = 4040;
+    var endpoint = 'Meta::health';
+    var serviceName = 'server';
+    asThrift.register(server, endpoint, opts, badHealth);
+    server.listen(port, hostname, onListening);
+    function onListening() {
+        var cmd = [
+            path.join(__dirname, '..', 'index.js'),
+            '-p', hostname + ':' + port,
+            serviceName,
+            null,
+            '--health'
+        ];
+
+        var proc = spawn('node', cmd);
+        proc.on('exit', onExit);
+
+        function onExit(code) {
+            server.close();
+            assert.equal(code, 1, 'exits with status 1');
+            assert.end();
+        }
+
+    }
+});
+
+test('test non-existant service with subprocess', function t(assert) {
+    var hostname = '127.0.0.1';
+    var port = 4040;
+    var serviceName = 'server';
+
+    var cmd = [
+        path.join(__dirname, '..', 'index.js'),
+        '-p', hostname + ':' + port,
+        serviceName,
+        null,
+        '--health'
+    ];
+
+    var proc = spawn('node', cmd);
+    proc.on('exit', onExit);
+
+    function onExit(code) {
+        assert.equal(code, 1, 'exits with status 1');
+        assert.end();
     }
 });
