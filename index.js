@@ -42,7 +42,7 @@ var assert = require('assert');
 
 var safeJsonParse = require('safe-json-parse/tuple');
 
-var Logger = require('./log');
+var Logger = require('./logger');
 var HealthLogger = require('./health-logger');
 var TCurlAsHttp = require('./as-http');
 

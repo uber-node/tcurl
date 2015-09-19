@@ -4,7 +4,7 @@
 /* eslint no-console: [0] */
 
 var util = require('util');
-var Logger = require('./log');
+var Logger = require('./logger');
 
 module.exports = HealthLogger;
 
