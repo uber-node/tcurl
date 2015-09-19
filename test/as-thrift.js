@@ -59,23 +59,24 @@ test('getting an ok response', function t(assert) {
             '-3', JSON.stringify({})
         ];
 
-        tcurl.exec(cmd, onResponse);
-
-        function onResponse(err, resp) {
-            if (err) {
-                return assert.end(err);
+        tcurl.exec(cmd, {
+            error: function error(err) {
+                assert.ifError(err);
+            },
+            response: function response(res) {
+                assert.deepEqual(res.head, {
+                    headerName: 'responseHeader'
+                }, 'caller receives headers from handler');
+                assert.deepEqual(res.body, {
+                    ok: true,
+                    message: null
+                }, 'caller receives thrift body from handler');
+            },
+            exit: function exit() {
+                server.close();
+                assert.end();
             }
-            assert.deepEqual(resp.head, {
-                headerName: 'responseHeader'
-            }, 'caller receives headers from handler');
-            assert.deepEqual(resp.body, {
-                ok: true,
-                message: null
-            }, 'caller receives thrift body from handler');
-
-            server.close();
-            assert.end();
-        }
+        });
     }
 
     function health(options, req, head, body, cb) {
@@ -123,16 +124,20 @@ test('hitting non-existent endpoint', function t(assert) {
             '-t', path.join(__dirname, '..')
         ];
 
-        tcurl.exec(cmd, onResponse);
-
-        function onResponse(err, resp) {
-            assert.equal(err.message,
-                nonexistentEndpoint + ' endpoint does not exist',
-                'Warned about non-existent endpoint');
-
-            server.close();
-            assert.end();
-        }
+        tcurl.exec(cmd, {
+            error: function error(err) {
+                assert.equal(err,
+                    nonexistentEndpoint + ' endpoint does not exist',
+                    'Warned about non-existent endpoint');
+            },
+            response: function response(res) {
+                assert.fail('should be no response');
+            },
+            exit: function exit(err) {
+                server.close();
+                assert.end(err);
+            }
+        });
     }
 
     function noop() {}

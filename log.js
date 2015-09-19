@@ -20,67 +20,47 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
+/* global console, process */
+/* eslint no-console: [0] */
+/* eslint no-process-exit: [0] */
 'use strict';
 
-var console = require('console');
-var util = require('util');
 module.exports = Logger;
 
 function Logger() {
+    var self = this;
+    self.exitCode = 0;
 }
 
-Logger.prototype.displayResponse =
-function displayResponse(level, message, opts, value) {
+Logger.prototype.log = function log(message) {
+    // We only want valid response objects on stdout
+    console.error(message);
+};
+
+Logger.prototype.error = function error(err) {
+    var self = this;
+    self.exitCode = self.exitCode | 1;
+    console.error(err);
+};
+
+Logger.prototype.response = function response(res, opts) {
     var self = this;
 
-    if (opts.json) {
-        self.display(level, {
-            message: message,
-            response: value
-        }, opts);
+    if (!res.ok) {
+        self.exitCode = self.exitCode | 1; // TODO extract response code byte
+    }
+
+    if (opts.raw) {
+        console.log(res);
     } else {
-        self.display(level, message, opts);
-        self.display(level, value, opts);
+        console.log(JSON.stringify(res));
     }
 };
 
-Logger.prototype.display =
-function display(level, message, opts, fields) {
+Logger.prototype.exit = function exit(err) {
     var self = this;
-    if (!fields) {
-        self._display(level, message, opts);
-        return;
+    if (err) {
+        self.error(err.message, err);
     }
-
-    if (opts.json) {
-        self.display(level, {
-            message: message,
-            fields: fields
-        }, opts);
-    } else {
-        self.display('error', message, opts);
-        self.display('error', fields, opts);
-    }
-};
-
-Logger.prototype._display = function _display(level, value, opts) {
-    var self = this;
-    if (opts.json) {
-        self.log(level, JSON.stringify(value, null, opts.json));
-    } else if (opts.raw) {
-        self.log(level, String(value));
-    } else {
-        self.log(level, util.inspect(value, {
-            depth: opts.depth || 2
-        }));
-    }
-};
-
-Logger.prototype.log = function log(level, message) {
-    /*eslint no-console: 0*/
-    if (level === 'error') {
-        console.error(message);
-    } else {
-        console.log(message);
-    }
+    process.exit(self.exitCode);
 };

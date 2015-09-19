@@ -70,29 +70,32 @@ test('getting an ok response', function t(assert) {
             '-J'
         ];
 
-        tcurl.exec(cmd, onResponse);
-
-        function onResponse(err, resp) {
-            assert.ifError(err);
-            assert.deepEqual(resp, {
-                ok: true,
-                head: null,
-                body: {
-                    opts: {
-                        isOptions: true
+        tcurl.exec(cmd, {
+            error: function error(err) {
+                assert.ifError(err);
+            },
+            response: function response(res) {
+                assert.deepEqual(res, {
+                    ok: true,
+                    head: null,
+                    body: {
+                        opts: {
+                            isOptions: true
+                        },
+                        head: head,
+                        body: body,
+                        serviceName: serviceName
                     },
-                    head: head,
-                    body: body,
-                    serviceName: serviceName
-                },
-                headers: {
-                    'as': 'json'
-                }
-            });
-
-            server.close();
-            assert.end();
-        }
+                    headers: {
+                        'as': 'json'
+                    }
+                });
+            },
+            exit: function exit() {
+                server.close();
+                assert.end();
+            }
+        });
     }
 });
 
@@ -141,28 +144,31 @@ test('timeouts work', function t(assert) {
             '-J'
         ];
 
-        tcurl.exec(cmd, onResponse);
-
-        function onResponse(err, resp) {
-            assert.ifError(err);
-            assert.deepEqual(resp, {
-                ok: true,
-                head: null,
-                body: {
-                    opts: {
-                        isOptions: true
+        tcurl.exec(cmd, {
+            error: function error(err) {
+                assert.ifError(err);
+            },
+            response: function response(res) {
+                assert.deepEqual(res, {
+                    ok: true,
+                    head: null,
+                    body: {
+                        opts: {
+                            isOptions: true
+                        },
+                        head: head,
+                        body: body,
+                        serviceName: serviceName
                     },
-                    head: head,
-                    body: body,
-                    serviceName: serviceName
-                },
-                headers: {
-                    'as': 'json'
-                }
-            });
-
-            server.close();
-            assert.end();
-        }
+                    headers: {
+                        'as': 'json'
+                    }
+                });
+            },
+            exit: function exit() {
+                server.close();
+                assert.end();
+            }
+        });
     }
 });

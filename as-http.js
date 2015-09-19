@@ -44,7 +44,8 @@ function TCurlAsHttp(options) {
     self.headers = options.headers;
     self.endpoint = options.endpoint;
     self.body = options.body;
-    self.onResponse = options.onResponse;
+    self.done = options.done;
+    self.delegate = options.delegate;
 }
 
 TCurlAsHttp.prototype.send = function send() {
@@ -64,35 +65,28 @@ TCurlAsHttp.prototype.send = function send() {
 
     function onSent(err, head, stream, body) {
         if (err) {
-            if (self.onResponse) {
-                return self.onResponse(err);
-            }
-            return self.logger.log('error', err);
+            self.done();
+            return self.logger.exit(err);
         }
 
-        if (!self.onResponse) {
-            self.logger.display('log', head.statusCode);
-        }
+        self.logger.log(head.statusCode);
 
-        var str = '';
         if (body) {
-            str = body.toString();
             done();
         } else {
-            stream.on('data', function onData(chunk) {
-                str += chunk;
-            });
-            stream.on('end', function onEnd() {
-                done();
-            });
+            body = '';
+            stream.on('data', onData);
+            stream.on('end', done);
+        }
+
+        function onData(chunk) {
+            body += chunk;
         }
 
         function done() {
-            if (self.onResponse) {
-                return self.onResponse(null, str);
-            }
-
-            self.logger.display('log', str);
+            self.done();
+            self.logger.response(body);
+            self.logger.exit();
         }
     }
 };

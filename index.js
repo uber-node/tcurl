@@ -22,6 +22,7 @@
 
 /*eslint no-console: [0] */
 /*eslint no-process-exit: [0] */
+/*eslint max-params: [2, 6] */
 'use strict';
 
 var TChannel = require('tchannel');
@@ -42,8 +43,8 @@ var assert = require('assert');
 var safeJsonParse = require('safe-json-parse/tuple');
 
 var Logger = require('./log');
+var HealthLogger = require('./health-logger');
 var TCurlAsHttp = require('./as-http');
-var Meta = require('./meta');
 
 var packageJson = require('./package.json');
 
@@ -57,8 +58,7 @@ var minimistArgs = {
         H: 'hostlist',
         t: 'thrift',
         2: ['arg2', 'head'],
-        3: ['arg3', 'body'],
-        j: ['J', 'json']
+        3: ['arg3', 'body']
     },
     default: {
         head: '',
@@ -66,27 +66,28 @@ var minimistArgs = {
     }
 };
 
-// calls callback with (err, res, tcurl, opts) or logs/exits
-function main(argv, callback) {
+// delegate implements error(message, err), response(res), exit()
+function main(argv, delegate) {
     if (argv.help || argv._.length === 0) {
         return help();
     }
 
     var opts = parseArgs(argv);
     var tcurl = new TCurl();
-    callback = callback || function exit(err, res) {
-        tcurl.exit(err, res, opts);
-    };
 
     if (opts.health) {
-        return Meta.health(tcurl, opts, callback);
+        delegate = delegate || new HealthLogger();
+        opts.thrift = path.join(__dirname, 'meta.thrift');
+        opts.endpoint = 'Meta::health';
     } else {
-        return tcurl.request(opts, callback);
+        delegate = delegate || new Logger();
     }
+
+    return tcurl.request(opts, delegate);
 }
 
-main.exec = function execMain(str, callback) {
-    main(minimist(str, minimistArgs), callback);
+main.exec = function execMain(str, delegate) {
+    main(minimist(str, minimistArgs), delegate);
 };
 
 function help() {
@@ -100,8 +101,6 @@ function help() {
         '    -3 [data] send an arg3 blob',
         '    --shardKey send ringpop shardKey transport header',
         '    --depth=n configure inspect printing depth',
-        '    -j print JSON',
-        '    -J [indent] print JSON with indentation',
         '    -t [dir] directory containing Thrift files',
         '    --http method',
         '    --raw encode arg2 & arg3 raw',
@@ -150,84 +149,51 @@ function parseArgs(argv) {
 }
 
 function TCurl(opts) {
-    var self = this;
-    opts = opts || {};
-    self.logger = opts.logger || new Logger(opts);
 }
 
-TCurl.prototype.reportError = function reportError(message, err, opts) {
-    var self = this;
-    self.logger.display('error', message, opts, {
-        error: {
-            message: err.message,
-            type: err.type,
-            arguments: err.arguments,
-            name: err.name
-        }
-    });
-};
-
-TCurl.prototype.parseJsonArgs = function parseJsonArgs(opts) {
-    var self = this;
-
+TCurl.prototype.parseJsonArgs = function parseJsonArgs(opts, delegate) {
     if (opts.raw) {
         return null;
     }
 
     var tuple = null;
-    if (opts.body) {
-        tuple = safeJsonParse(opts.body);
-        opts.body = tuple[1] || opts.body;
-    }
-    if (tuple && tuple[0]) {
-        return self.jsonParseError(
-            'Failed to JSON parse arg3 (i.e. request body).',
-            opts.body,
-            tuple[0],
-            opts);
-    }
-
-    tuple = null;
     if (opts.head) {
         tuple = safeJsonParse(opts.head);
         opts.head = tuple[1] || opts.head;
     }
     if (tuple && tuple[0]) {
-        return self.jsonParseError(
-            'Failed to JSON parse arg2 (i.e. request head).',
-            opts.head,
-            tuple[0],
-            opts
-        );
+        delegate.error('Failed to parse arg2 (i.e., head) as JSON');
+        delegate.error(tuple[0]);
+    }
+
+    tuple = null;
+    if (opts.body) {
+        tuple = safeJsonParse(opts.body);
+        opts.body = tuple[1] || opts.body;
+    }
+    if (tuple && tuple[0]) {
+        delegate.error('Failed to parse arg3 (i.e., body) as JSON');
+        delegate.error(tuple[0]);
     }
 
     return null;
 };
 
-TCurl.prototype.jsonParseError = function jsonParseError(message, source, err) {
-    var effect = new Error(message + ' It should be JSON formatted.');
-    effect.source = source;
-    effect.cause = err;
-    return effect;
-};
-
-TCurl.prototype.readThrift = function readThrift(opts) {
+TCurl.prototype.readThrift = function readThrift(opts, delegate) {
     var self = this;
     try {
         return fs.readFileSync(opts.thrift, 'utf8');
     } catch (err) {
         if (err.code !== 'EISDIR') {
-            self.reportError('Failed to read thrift file "' +
-                opts.thrift + '"', err, opts);
+            delegate.error('Failed to read thrift file "' + opts.thrift + '"');
+            delegate.error(err);
             return null;
         }
     }
     return self.readThriftDir(opts);
 };
 
-TCurl.prototype.readThriftDir = function readThriftDir(opts) {
-    var self = this;
-
+TCurl.prototype.readThriftDir = function readThriftDir(opts, delegate) {
     var sources = {};
     var files = fs.readdirSync(opts.thrift);
     files.forEach(function eachFile(file) {
@@ -241,43 +207,21 @@ TCurl.prototype.readThriftDir = function readThriftDir(opts) {
     });
 
     if (!sources[opts.service]) {
-        var err = new Error('Spec for service "' +
+        delegate.error('Spec for service "' +
             opts.service + '" unavailable in directory "' + opts.thrift + '"');
-        self.reportError(err.message, err, opts);
         return null;
     }
 
     return sources[opts.service];
 };
 
-TCurl.prototype.exit = function exit(err, res, opts) {
+TCurl.prototype.request = function tcurlRequest(opts, delegate) {
     var self = this;
 
-    if (err && err.exitCode !== undefined) {
-        process.exit(err.exitCode);
-    }
-
-    if (err) {
-        self.logger.displayResponse('error',
-            'Got an error response', opts, err);
-        process.exit(1);
-    } else if (!res.ok) {
-        self.logger.displayResponse('error',
-            'Got call response not ok', opts, res.body);
-        process.exit(1);
-    } else {
-        self.logger.displayResponse('log',
-            'Got call response ok', opts, res.body);
-        process.exit(0);
-    }
-};
-
-TCurl.prototype.request = function tcurlRequest(opts, callback) {
-    var self = this;
-
-    var parseErr = self.parseJsonArgs(opts);
-    if (parseErr) {
-        return callback(parseErr, null);
+    // May report errors for arg2, arg3, or both
+    self.parseJsonArgs(opts, delegate);
+    if (delegate.exitCode) {
+        return delegate.exit();
     }
 
     var client = TChannel({
@@ -301,7 +245,8 @@ TCurl.prototype.request = function tcurlRequest(opts, callback) {
 
     function onIdentified(err) {
         if (err) {
-            return onResponse(err);
+            delegate.error(err);
+            return delegate.exit();
         }
 
         var headers = opts.shardKey ? {sk: opts.shardKey} : {};
@@ -314,37 +259,30 @@ TCurl.prototype.request = function tcurlRequest(opts, callback) {
         });
 
         if (opts.thrift) {
-            self.asThrift(opts, request, onResponse);
-        } else if (opts.raw) {
-            self.asRaw(opts, request, onResponse);
+            self.asThrift(opts, request, delegate, done);
         } else if (opts.http) {
-            self.asHTTP(opts, client, subChan, onResponse);
+            self.asHTTP(opts, client, subChan, delegate, done);
+        } else if (opts.raw) {
+            self.asRaw(opts, request, delegate, done);
         } else {
-            self.asJSON(opts, request, onResponse);
+            self.asJSON(opts, request, delegate, done);
+            // TODO fix argument order for each of these
         }
     }
 
-    function onResponse(err, res, arg2, arg3) {
+    function done() {
         client.quit();
-
-        if (arg2 !== undefined && res) {
-            res.head = arg2;
-        }
-        if (arg3 !== undefined && res) {
-            res.body = arg3;
-        }
-
-        callback(err, res);
     }
 };
 
-TCurl.prototype.asThrift = function asThrift(opts, request, onResponse) {
+TCurl.prototype.asThrift = function asThrift(opts, request, delegate, done) {
     var self = this;
 
-    var source = self.readThrift(opts);
+    var source = self.readThrift(opts, delegate);
 
     if (source === null) {
-        return onResponse({exitCode: 1}, null, self, opts);
+        done();
+        return delegate.exit();
     }
 
     var sender = new TChannelAsThrift({source: source});
@@ -357,27 +295,39 @@ TCurl.prototype.asThrift = function asThrift(opts, request, onResponse) {
     try {
         sender.send(request, opts.endpoint, opts.head,
             opts.body, onResponse);
-    } catch (e) {
-        if (e.message ===
-            fmt('type %s_args not found', opts.endpoint)) {
-            var emsg = fmt('%s endpoint does not exist', opts.endpoint);
-            onResponse(new Error(emsg));
+    } catch (err) {
+        // TODO untangle this mess
+        if (err.message === fmt('type %s_args not found', opts.endpoint)) {
+            delegate.error(fmt('%s endpoint does not exist', opts.endpoint));
+            done();
+            return delegate.exit();
         } else {
-            var msg = e.message || '';
-            self.reportError('Error response received for the as-thrift request. ' + msg, e, opts);
-            return onResponse(e);
+            delegate.error('Error response received for the as-thrift request.');
+            delegate.error(err);
+            done();
+            return delegate.exit();
         }
+    }
+
+    function onResponse(err, res, arg2, arg3) {
+        done();
+        self.onResponse(err, res, arg2, arg3, opts, delegate);
     }
 };
 
-TCurl.prototype.asRaw = function asRaw(opts, request, onResponse) {
-    request.headers.as = 'raw';
+TCurl.prototype.asRaw = function asRaw(opts, request, delegate, done) {
+    var self = this;
+    request.headers.as = opts.as || 'raw';
     request.send(opts.endpoint, opts.head, opts.body,
         onResponse);
+
+    function onResponse(err, res, arg2, arg3) {
+        done();
+        self.onResponse(err, res, arg2, arg3, opts, delegate);
+    }
 };
 
-TCurl.prototype.asHTTP = function asHTTP(opts, client, subChan, onResponse) {
-    var self = this;
+TCurl.prototype.asHTTP = function asHTTP(opts, client, subChan, delegate, done) {
     var asHttp = TCurlAsHttp({
         channel: client,
         subChannel: subChan,
@@ -385,16 +335,39 @@ TCurl.prototype.asHTTP = function asHTTP(opts, client, subChan, onResponse) {
         endpoint: opts.endpoint,
         headers: opts.head,
         body: opts.body,
-        onResponse: onResponse,
-        logger: self.logger
+        done: done,
+        logger: delegate
     });
     asHttp.send();
 };
 
-TCurl.prototype.asJSON = function asJSON(opts, request, onResponse) {
+TCurl.prototype.asJSON = function asJSON(opts, request, delegate, done) {
+    var self = this;
     var sender = new TChannelAsJSON();
     sender.send(request, opts.endpoint, opts.head,
         opts.body, onResponse);
+
+    function onResponse(err, res, arg2, arg3) {
+        done();
+        self.onResponse(err, res, arg2, arg3, opts, delegate);
+    }
+};
+
+TCurl.prototype.onResponse = function onResponse(err, res, arg2, arg3, opts, delegate) {
+    if (err) {
+        delegate.error(err);
+        return delegate.exit();
+    }
+
+    if (arg2 !== undefined && res) {
+        res.head = arg2;
+    }
+    if (arg3 !== undefined && res) {
+        res.body = arg3;
+    }
+
+    delegate.response(res, opts);
+    return delegate.exit();
 };
 
 if (require.main === module) {

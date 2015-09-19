@@ -78,13 +78,20 @@ test('getting an ok', function t(assert) {
             '--health'
         ];
 
-        tcurl.exec(cmd, onResponse);
-
-        function onResponse(err) {
-            assert.equals(err.exitCode, 0, 'should be ok');
-            server.close();
-            assert.end();
-        }
+        tcurl.exec(cmd, {
+            responded: false,
+            response: function response(res) {
+                this.responded = true;
+            },
+            error: function error(err) {
+                assert.ifError(err);
+            },
+            exit: function exit() {
+                assert.ok(this.responded, 'expect response');
+                server.close();
+                assert.end();
+            }
+        });
     }
 });
 
@@ -110,15 +117,21 @@ test('getting a notOk', function t(assert) {
             '--health'
         ];
 
-        tcurl.exec(cmd, onResponse);
-
-        function onResponse(err, resp) {
-            assert.equals(err.exitCode, 1, 'exits with code 1');
-            assert.equals(resp.body.ok, false, 'not ok');
-            assert.equals(resp.body.message, 'having a bad day!', 'should be notOk');
-            server.close();
-            assert.end();
-        }
+        tcurl.exec(cmd, {
+            error: function error(err) {
+                assert.ifError(err);
+            },
+            response: function response(res) {
+                this.ok = res.body.ok;
+                assert.equals(res.body.ok, false, 'not ok');
+                assert.equals(res.body.message, 'having a bad day!', 'should be notOk');
+            },
+            exit: function exit() {
+                assert.equal(this.ok, false, 'exits with error');
+                server.close();
+                assert.end();
+            }
+        });
     }
 });
 
@@ -144,13 +157,22 @@ test('getting an error', function t(assert) {
             '--health'
         ];
 
-        tcurl.exec(cmd, onResponse);
-
-        function onResponse(err, resp) {
-            assert.equals(err.exitCode, 1, 'should exit with code 1');
-            server.close();
-            assert.end();
-        }
+        tcurl.exec(cmd, {
+            erred: false,
+            responded: false,
+            error: function error() {
+                this.erred = true;
+            },
+            response: function response(res) {
+                this.responded = true;
+            },
+            exit: function exit() {
+                assert.equals(this.erred, true, 'should exit with error');
+                assert.equals(this.responded, false, 'should not respond');
+                server.close();
+                assert.end();
+            }
+        });
     }
 });
 
