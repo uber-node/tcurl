@@ -29,7 +29,7 @@ var tcurl = require('../index.js');
 var TChannel = require('tchannel');
 var TChannelAsHTTP = require('tchannel/as/http.js');
 
-test.only('getting an ok response', function t(assert) {
+test('getting an ok response', function t(assert) {
     var serviceName = 'service';
     var server = new TChannel({});
     var asHttpServer = TChannelAsHTTP();

@@ -57,10 +57,7 @@ Logger.prototype.response = function response(res, opts) {
     }
 };
 
-Logger.prototype.exit = function exit(err) {
+Logger.prototype.exit = function exit() {
     var self = this;
-    if (err) {
-        self.error(err.message, err);
-    }
     process.exit(self.exitCode);
 };

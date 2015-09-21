@@ -317,7 +317,7 @@ TCurl.prototype.asThrift = function asThrift(opts, request, delegate, done) {
 
 TCurl.prototype.asRaw = function asRaw(opts, request, delegate, done) {
     var self = this;
-    request.headers.as = opts.as || 'raw';
+    request.headers.as = 'raw';
     request.send(opts.endpoint, opts.head, opts.body,
         onResponse);
 

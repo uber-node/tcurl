@@ -39,10 +39,10 @@ HealthLogger.prototype.response = function response(res, opts) {
     var self = this;
     var msg;
     if (self.exitCode === 0 && res && res.ok && res.body && res.body.ok) {
-        console.log('ok');
+        console.log('OK');
     } else {
         self.exitCode = self.exitCode | 1;
-        msg = 'notOk';
+        msg = 'NOT OK';
         if (res && res.body && res.body.message) {
             msg += '\n' + res.body.message;
         }

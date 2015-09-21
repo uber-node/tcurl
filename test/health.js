@@ -123,7 +123,7 @@ test('getting a notOk', function t(assert) {
             },
             response: function response(res) {
                 this.ok = res.body.ok;
-                assert.equals(res.body.ok, false, 'not ok');
+                assert.equals(res.body.ok, false, 'NOT OK');
                 assert.equals(res.body.message, 'having a bad day!', 'should be notOk');
             },
             exit: function exit() {
@@ -208,7 +208,7 @@ test('test healthy endpoint with subprocess', function t(assert) {
         proc.on('exit', onExit);
 
         function onStdout(line) {
-            assert.equal(line, 'ok\n', 'expected stdout');
+            assert.equal(line, 'OK\n', 'expected stdout');
         }
         function onStderr(line) {
             console.error(line);
@@ -256,7 +256,7 @@ test('test un-healthy endpoint with subprocess', function t(assert) {
         proc.on('exit', onExit);
 
         function onStdout(line) {
-            assert.equal(line, 'notOk\nhaving a bad day!\n', 'expected stdout');
+            assert.equal(line, 'NOT OK\nhaving a bad day!\n', 'expected stdout');
         }
         function onStderr(line) {
             console.error(line);
@@ -272,7 +272,7 @@ test('test un-healthy endpoint with subprocess', function t(assert) {
     }
 });
 
-test('test non-existant service with subprocess', function t(assert) {
+test('test non-existent service with subprocess', function t(assert) {
     var hostname = '127.0.0.1';
     var port = 4040;
     var serviceName = 'server';
@@ -291,7 +291,7 @@ test('test non-existant service with subprocess', function t(assert) {
     proc.on('exit', onExit);
 
     function onStdout(line) {
-        assert.equal(line, 'notOk\n', 'expected stdout');
+        assert.equal(line, 'NOT OK\n', 'expected stdout');
     }
 
     function onExit(code) {

@@ -66,24 +66,25 @@ TCurlAsHttp.prototype.send = function send() {
     function onSent(err, head, stream, body) {
         if (err) {
             self.done();
-            return self.logger.exit(err);
+            self.logger.error(err);
+            return self.logger.exit();
         }
 
         self.logger.log(head.statusCode);
 
         if (body) {
-            done();
+            onBodyEnd();
         } else {
             body = '';
             stream.on('data', onData);
-            stream.on('end', done);
+            stream.on('end', onBodyEnd);
         }
 
         function onData(chunk) {
             body += chunk;
         }
 
-        function done() {
+        function onBodyEnd() {
             self.done();
             self.logger.response(body);
             self.logger.exit();
