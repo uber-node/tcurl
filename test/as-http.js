@@ -95,16 +95,19 @@ test('getting an ok response', function t(assert) {
             '-3', JSON.stringify(body)
         ];
 
-        tcurl.exec(cmd, onResponse);
-
-        function onResponse(err, resp) {
-            if (err) {
+        tcurl.exec(cmd, {
+            log: function log(statusCode) {
+                this.statusCode = statusCode;
+            },
+            response: function response(res) {
+                assert.equals(res.toString(), 'Hello Test', 'response should equal');
+            },
+            exit: function exit(err) {
+                assert.equal(this.statusCode, 200, 'status code should be 200');
+                server.close();
+                httpServer.close();
                 assert.end(err);
             }
-            assert.equals(resp, 'Hello Test', 'response should equal');
-            server.close();
-            httpServer.close();
-            assert.end();
-        }
+        });
     }
 });

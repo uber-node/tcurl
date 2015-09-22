@@ -20,7 +20,9 @@
 
 'use strict';
 
-/* jshint maxparams:5 */
+/*global console */
+/*eslint no-console: [0] */
+/*eslint max-params: [2, 5] */
 
 var test = require('tape');
 var tcurl = require('../index.js');
@@ -76,13 +78,20 @@ test('getting an ok', function t(assert) {
             '--health'
         ];
 
-        tcurl.exec(cmd, onResponse);
-
-        function onResponse(msg) {
-            assert.equals(msg, 'ok', 'should be ok');
-            server.close();
-            assert.end();
-        }
+        tcurl.exec(cmd, {
+            responded: false,
+            response: function response(res) {
+                this.responded = true;
+            },
+            error: function error(err) {
+                assert.ifError(err);
+            },
+            exit: function exit() {
+                assert.ok(this.responded, 'expect response');
+                server.close();
+                assert.end();
+            }
+        });
     }
 });
 
@@ -108,13 +117,21 @@ test('getting a notOk', function t(assert) {
             '--health'
         ];
 
-        tcurl.exec(cmd, onResponse);
-
-        function onResponse(msg) {
-            assert.equals(msg, 'notOk\nhaving a bad day!', 'should be notOk');
-            server.close();
-            assert.end();
-        }
+        tcurl.exec(cmd, {
+            error: function error(err) {
+                assert.ifError(err);
+            },
+            response: function response(res) {
+                this.ok = res.body.ok;
+                assert.equals(res.body.ok, false, 'NOT OK');
+                assert.equals(res.body.message, 'having a bad day!', 'should be notOk');
+            },
+            exit: function exit() {
+                assert.equal(this.ok, false, 'exits with error');
+                server.close();
+                assert.end();
+            }
+        });
     }
 });
 
@@ -140,13 +157,22 @@ test('getting an error', function t(assert) {
             '--health'
         ];
 
-        tcurl.exec(cmd, onResponse);
-
-        function onResponse(msg) {
-            assert.equals(msg, 'notOk', 'should be notOk');
-            server.close();
-            assert.end();
-        }
+        tcurl.exec(cmd, {
+            erred: false,
+            responded: false,
+            error: function error() {
+                this.erred = true;
+            },
+            response: function response(res) {
+                this.responded = true;
+            },
+            exit: function exit() {
+                assert.equals(this.erred, true, 'should exit with error');
+                assert.equals(this.responded, false, 'should not respond');
+                server.close();
+                assert.end();
+            }
+        });
     }
 });
 
@@ -182,9 +208,10 @@ test('test healthy endpoint with subprocess', function t(assert) {
         proc.on('exit', onExit);
 
         function onStdout(line) {
-            assert.equal(line, 'ok\n', 'expected stdout');
+            assert.equal(line, 'OK\n', 'expected stdout');
         }
         function onStderr(line) {
+            console.error(line);
             assert.fail('no stderr expected');
         }
 
@@ -229,9 +256,10 @@ test('test un-healthy endpoint with subprocess', function t(assert) {
         proc.on('exit', onExit);
 
         function onStdout(line) {
-            assert.equal(line, 'notOk\nhaving a bad day!\n', 'expected stdout');
+            assert.equal(line, 'NOT OK\nhaving a bad day!\n', 'expected stdout');
         }
         function onStderr(line) {
+            console.error(line);
             assert.fail('no stderr expected');
         }
 
@@ -244,7 +272,7 @@ test('test un-healthy endpoint with subprocess', function t(assert) {
     }
 });
 
-test('test non-existant service with subprocess', function t(assert) {
+test('test non-existent service with subprocess', function t(assert) {
     var hostname = '127.0.0.1';
     var port = 4040;
     var serviceName = 'server';
@@ -263,7 +291,7 @@ test('test non-existant service with subprocess', function t(assert) {
     proc.on('exit', onExit);
 
     function onStdout(line) {
-        assert.equal(line, 'notOk\n', 'expected stdout');
+        assert.equal(line, 'NOT OK\n', 'expected stdout');
     }
 
     function onExit(code) {
