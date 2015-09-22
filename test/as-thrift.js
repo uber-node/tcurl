@@ -29,7 +29,8 @@ var tcurl = require('../index.js');
 var TChannel = require('tchannel');
 var TChannelAsThrift = require('tchannel/as/thrift.js');
 
-var meta = fs.readFileSync(path.join(__dirname, '..', 'meta.thrift'), 'utf-8');
+var meta = fs.readFileSync(path.join(__dirname, '..', 'meta.thrift'), 'ascii');
+var legacy = fs.readFileSync(path.join(__dirname, 'legacy.thrift'), 'ascii');
 
 test('getting an ok response', function t(assert) {
 
@@ -143,3 +144,105 @@ test('hitting non-existent endpoint', function t(assert) {
     function noop() {}
 
 });
+
+test('fails to run for invalid thrift', function t(assert) {
+
+    var serviceName = 'meta';
+    var server = new TChannel({
+        serviceName: serviceName
+    });
+
+    var hostname = '127.0.0.1';
+    var port = 4040;
+
+    server.listen(port, hostname, onListening);
+
+    function onListening() {
+
+        var cmd = [
+            '-p', '127.0.0.1:4040',
+            'no-service',
+            'no-endpoint',
+            '-t', path.join(__dirname, 'legacy.thrift')
+        ];
+
+        tcurl.exec(cmd, {
+            errorNo: 0,
+            error: function error(err) {
+                this['error' + (this.errorNo++)](err);
+            },
+            error0: function error0(err) {
+                assert.equal(err, 'Error parsing Thrift IDL');
+            },
+            error1: function error1(err) {
+                assert.equal(err.message,
+                    'every field must be marked optional, ' +
+                    'required, or have a default value on Feckless including ' +
+                    '"ambiguity" in strict mode', 'expected thrift IDL validation error');
+            },
+            error2: function error2(err) {
+                assert.equal(err, 'Consider using --no-strict to bypass mandatory optional/required fields');
+            },
+            exit: function exit() {
+                assert.equal(this.errorNo, 3, 'expect three error lines');
+                server.close();
+                assert.end();
+            }
+        });
+    }
+
+});
+
+test('tolerates loose thrift with --no-strict', function t(assert) {
+
+    var serviceName = 'legacy';
+    var server = new TChannel({
+        serviceName: serviceName
+    });
+
+    var hostname = '127.0.0.1';
+    var port = 4040;
+
+    server.listen(port, hostname, onListening);
+
+    var tchannelAsThrift = TChannelAsThrift({source: legacy, strict: false});
+    tchannelAsThrift.register(server, 'Pinger::ping', {}, ping);
+
+    function onListening() {
+
+        var cmd = [
+            '-p', '127.0.0.1:4040',
+            'legacy',
+            'Pinger::ping',
+            '--no-strict',
+            '-t', path.join(__dirname, 'legacy.thrift')
+        ];
+
+        tcurl.exec(cmd, {
+            responded: false,
+            error: function error(err) {
+                assert.ifError(err);
+            },
+            response: function response(res) {
+                assert.deepEquals(res, {
+                    ok: true,
+                    body: {pong: true},
+                    head: {},
+                    headers: {as: 'thrift'},
+                    typeName: undefined
+                }, 'response ok');
+                this.responded = true;
+            },
+            exit: function exit() {
+                assert.ok(this.responded, 'response expected');
+                server.close();
+                assert.end();
+            }
+        });
+    }
+
+});
+
+function ping(options, req, head, body, cb) {
+    cb(null, {ok: true, head: {}, body: {pong: true}});
+}
