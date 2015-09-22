@@ -265,7 +265,7 @@ test('test un-healthy endpoint with subprocess', function t(assert) {
 
         function onExit(code) {
             server.close();
-            assert.equal(code, 1, 'exits with status 1');
+            assert.equal(code, 124, 'exits with status 124');
             assert.end();
         }
 
@@ -295,7 +295,7 @@ test('test non-existent service with subprocess', function t(assert) {
     }
 
     function onExit(code) {
-        assert.equal(code, 1, 'exits with status 1');
+        assert.equal(code, 125, 'exits with status 125');
         assert.end();
     }
 });
