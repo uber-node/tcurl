@@ -25,6 +25,8 @@
 /* eslint no-process-exit: [0] */
 'use strict';
 
+var EXIT_CODES = require('./exit-codes');
+
 module.exports = Logger;
 
 function Logger() {
@@ -39,15 +41,36 @@ Logger.prototype.log = function log(message) {
 
 Logger.prototype.error = function error(err) {
     var self = this;
-    self.exitCode = self.exitCode | 1;
-    console.error(err);
+
+    if (err.isErrorFrame) {
+
+        // TChannel error codes are small positive numbers or 0xFF
+        // Exit code high bit reserved for exit due to signal
+        self.exitCode = self.exitCode | err.errorCode & 0x7f;
+
+        console.error(err.name + ': ' + err.message);
+        console.log(JSON.stringify({
+            ok: false,
+            name: err.name,
+            message: err.message,
+            isErrorFrame: true,
+            errorCode: err.errorCode,
+            type: err.type,
+            fullType: err.fullType
+        }));
+
+    } else {
+        self.exitCode = self.exitCode | EXIT_CODES.ERROR;
+        console.error(err);
+    }
+
 };
 
 Logger.prototype.response = function response(res, opts) {
     var self = this;
 
     if (!res.ok) {
-        self.exitCode = self.exitCode | 1; // TODO extract response code byte
+        self.exitCode = self.exitCode | EXIT_CODES.RESPONSE_NOT_OK;
     }
 
     if (opts.raw) {

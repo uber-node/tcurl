@@ -20,33 +20,13 @@
 
 'use strict';
 
-/* global console */
-/* eslint no-console: [0] */
+var EXIT_CODES = Object.create(null);
 
-var util = require('util');
-var Logger = require('./logger');
-var EXIT_CODES = require('./exit-codes');
+// 0: OK
+// >0: TChannel error frames
+EXIT_CODES.HEALTH_NOT_OK = 124; // from a thrift health check
+EXIT_CODES.ERROR = 125; // tcurl/tchannel error
+EXIT_CODES.RESPONSE_NOT_OK = 126; // application error with ok: false response
+// 0x7F: TChannel fatal protocol error frame
 
-module.exports = HealthLogger;
-
-function HealthLogger() {
-    var self = this;
-    Logger.call(self);
-}
-
-util.inherits(HealthLogger, Logger);
-
-HealthLogger.prototype.response = function response(res, opts) {
-    var self = this;
-    var msg;
-    if (self.exitCode === 0 && res && res.ok && res.body && res.body.ok) {
-        console.log('OK');
-    } else {
-        self.exitCode = self.exitCode | EXIT_CODES.HEALTH_NOT_OK;
-        msg = 'NOT OK';
-        if (res && res.body && res.body.message) {
-            msg += '\n' + res.body.message;
-        }
-        console.log(msg);
-    }
-};
+module.exports = EXIT_CODES;

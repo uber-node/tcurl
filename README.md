@@ -64,6 +64,22 @@ loopback.
 To make supporting external IPs easier we've made `localhost` resolve to the external IP of the machine.
 This means if your listening on loopback you have to use `127.0.0.1` and not `localhost`
 
+## Exit Codes
+
+ - 0: for all successful requests
+ - 1: timeout
+ - 2: cancelled
+ - 3: busy
+ - 4: declined
+ - 5: unexpected error
+ - 6: bad request
+ - 7: network error
+ - 8: unhealthy (broken circuit)
+ - 124: unhealthy / not OK thrift response
+ - 125: misc tcurl / tchannel internal error
+ - 126: response not ok error
+ - 127: fatal protocol error
+
 ## NPM scripts
 
  - `npm run add-licence` This will add the licence headers.
@@ -78,6 +94,7 @@ This means if your listening on loopback you have to use `127.0.0.1` and not `lo
 
  - Raynos
  - ShanniLi
+ - kriskowal
 
 ## MIT Licenced
 
