@@ -51,7 +51,7 @@ var packageJson = require('./package.json');
 module.exports = main;
 
 var minimistArgs = {
-    boolean: ['raw'],
+    boolean: ['raw', 'strict'],
     alias: {
         h: 'help',
         p: 'peer',
@@ -62,7 +62,8 @@ var minimistArgs = {
     },
     default: {
         head: '',
-        body: ''
+        body: '',
+        strict: true
     }
 };
 
@@ -102,6 +103,7 @@ function help() {
         '    --shardKey send ringpop shardKey transport header',
         '    --depth=n configure inspect printing depth',
         '    -t [dir] directory containing Thrift files',
+        '    --no-strict parse Thrift loosely',
         '    --http method',
         '    --raw encode arg2 & arg3 raw',
         '    --health',
@@ -139,6 +141,7 @@ function parseArgs(argv) {
         hostname: parsedUri.hostname,
         port: parsedUri.port,
         thrift: argv.thrift,
+        strict: argv.strict,
         http: argv.http,
         json: argv.json,
         raw: argv.raw,
@@ -285,7 +288,16 @@ TCurl.prototype.asThrift = function asThrift(opts, request, delegate, done) {
         return delegate.exit();
     }
 
-    var sender = new TChannelAsThrift({source: source});
+    var sender;
+    try {
+        sender = new TChannelAsThrift({source: source, strict: opts.strict});
+    } catch (err) {
+        delegate.error('Error parsing Thrift IDL');
+        delegate.error(err);
+        delegate.error('Consider using --no-strict to bypass mandatory optional/required fields');
+        done();
+        return delegate.exit();
+    }
 
     // The following is a hack to produce a nice error message when
     // the endpoint does not exist. It is a temporary solution based
