@@ -118,17 +118,25 @@ function parseArgs(argv) {
     var endpoint = argv._[1];
     var health = argv.health;
 
-    var uri = argv.hostlist ?
-        JSON.parse(fs.readFileSync(argv.hostlist))[0] : argv.peer;
+    var peers = argv.hostlist ?
+        JSON.parse(fs.readFileSync(argv.hostlist)) : [argv.peer];
 
-    var parsedUri = url.parse('tchannel://' + uri);
-
-    if (parsedUri.hostname === 'localhost') {
-        parsedUri.hostname = myLocalIp();
+    var ip;
+    function normalizePeer(address) {
+        if (!ip) {
+            ip = myLocalIp();
+        }
+        var parsedUri = url.parse('tchannel://' + address);
+        if (parsedUri.hostname === 'localhost') {
+            parsedUri.hostname = ip;
+        }
+        assert(parsedUri.hostname, 'host required');
+        assert(parsedUri.port, 'port required');
+        return parsedUri.hostname + ':' + parsedUri.port;
     }
 
-    assert(parsedUri.hostname, 'host required');
-    assert(parsedUri.port, 'port required');
+    peers = peers.map(normalizePeer);
+
     assert(health || endpoint, 'endpoint required');
     assert(service, 'service required');
 
@@ -138,8 +146,7 @@ function parseArgs(argv) {
         shardKey: argv.shardKey,
         service: service,
         endpoint: endpoint,
-        hostname: parsedUri.hostname,
-        port: parsedUri.port,
+        peers: peers,
         thrift: argv.thrift,
         strict: argv.strict,
         http: argv.http,
@@ -233,7 +240,7 @@ TCurl.prototype.request = function tcurlRequest(opts, delegate) {
 
     var subChan = client.makeSubChannel({
         serviceName: opts.service,
-        peers: [opts.hostname + ':' + opts.port],
+        peers: opts.peers,
         requestDefaults: {
             serviceName: opts.service,
             headers: {
@@ -242,9 +249,9 @@ TCurl.prototype.request = function tcurlRequest(opts, delegate) {
         }
     });
 
-    client.waitForIdentified({
-        host: opts.hostname + ':' + opts.port
-    }, onIdentified);
+    var peer = subChan.peers.choosePeer();
+    // TODO: the host option should be called peer, hostPort, or address
+    client.waitForIdentified({host: peer.hostPort}, onIdentified);
 
     function onIdentified(err) {
         if (err) {
