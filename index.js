@@ -29,7 +29,6 @@ var TChannel = require('tchannel');
 var TChannelAsThrift = require('tchannel/as/thrift');
 var TChannelAsJSON = require('tchannel/as/json');
 var minimist = require('minimist');
-var myLocalIp = require('my-local-ip');
 var DebugLogtron = require('debug-logtron');
 
 var fmt = require('util').format;
@@ -37,7 +36,6 @@ var console = require('console');
 var process = require('process');
 var fs = require('fs');
 var path = require('path');
-var url = require('url');
 var assert = require('assert');
 
 var safeJsonParse = require('safe-json-parse/tuple');
@@ -51,12 +49,13 @@ var packageJson = require('./package.json');
 module.exports = main;
 
 var minimistArgs = {
-    boolean: ['raw', 'strict'],
+    boolean: ['raw', 'json', 'strict'],
     alias: {
         h: 'help',
         p: 'peer',
         H: 'hostlist',
         t: 'thrift',
+        j: 'json',
         2: ['arg2', 'head'],
         3: ['arg3', 'body']
     },
@@ -94,16 +93,21 @@ main.exec = function execMain(str, delegate) {
 function help() {
     var helpMessage = [
         'tcurl [-H <hostlist> | -p host:port] <service> <endpoint> [options]',
-        '  ',
+        '',
         '  Version: ' + packageJson.version,
+        '',
         '  Options: ',
         // TODO @file; @- stdin.
-        '    -2 [data] send an arg2 blob',
-        '    -3 [data] send an arg3 blob',
+        '    --head (-2) [data] JSON or raw',
+        '    --body (-3) [data] JSON or raw',
+        '      (JSON promoted to Thrift via IDL when applicable)',
         '    --shardKey send ringpop shardKey transport header',
         '    --depth=n configure inspect printing depth',
-        '    -t [dir] directory containing Thrift files',
+        '    --thrift (-t) [dir] directory containing Thrift files',
+        '      (obtained from Meta::thriftIDL endpoint if omitted)',
         '    --no-strict parse Thrift loosely',
+        '    --json (-j) Use JSON argument scheme',
+        '      (default unless endpoint has ::)',
         '    --http method',
         '    --raw encode arg2 & arg3 raw',
         '    --health',
@@ -121,24 +125,21 @@ function parseArgs(argv) {
     var peers = argv.hostlist ?
         JSON.parse(fs.readFileSync(argv.hostlist)) : [argv.peer];
 
-    var ip;
-    function normalizePeer(address) {
-        if (!ip) {
-            ip = myLocalIp();
-        }
-        var parsedUri = url.parse('tchannel://' + address);
-        if (parsedUri.hostname === 'localhost') {
-            parsedUri.hostname = ip;
-        }
-        assert(parsedUri.hostname, 'host required');
-        assert(parsedUri.port, 'port required');
-        return parsedUri.hostname + ':' + parsedUri.port;
-    }
-
-    peers = peers.map(normalizePeer);
-
     assert(health || endpoint, 'endpoint required');
     assert(service, 'service required');
+
+    var argScheme;
+    if (argv.raw) {
+        argScheme = 'raw';
+    } else if (argv.http) {
+        argScheme = 'http';
+    } else if (argv.json) {
+        argScheme = 'json';
+    } else if (argv.thrift || health || endpoint.indexOf('::') >= 0) {
+        argScheme = 'thrift';
+    } else {
+        argScheme = 'json';
+    }
 
     return {
         head: argv.head,
@@ -147,10 +148,10 @@ function parseArgs(argv) {
         service: service,
         endpoint: endpoint,
         peers: peers,
+        argScheme: argScheme,
         thrift: argv.thrift,
         strict: argv.strict,
         http: argv.http,
-        json: argv.json,
         raw: argv.raw,
         timeout: argv.timeout,
         depth: argv.depth,
@@ -187,6 +188,50 @@ TCurl.prototype.parseJsonArgs = function parseJsonArgs(opts, delegate) {
     }
 
     return null;
+};
+
+TCurl.prototype.getThriftSource = function getThriftSource(opts, channel, delegate, callback) {
+    var self = this;
+    if (opts.thrift) {
+        var source = self.readThrift(opts, delegate);
+        if (source === null) {
+            return callback(new Error('Unabled to find thrift source'));
+        } else {
+            return callback(null, source);
+        }
+    } else {
+        return self.requestThriftSource(opts, channel, delegate, callback);
+    }
+};
+
+TCurl.prototype.requestThriftSource = function requestThriftSource(opts, channel, delegate, callback) {
+    var source = fs.readFileSync(path.join(__dirname, 'meta.thrift'), 'ascii');
+    var sender = new TChannelAsThrift({source: source});
+
+    var request = channel.request({
+        timeout: opts.timeout || 100,
+        hasNoParent: true,
+        serviceName: opts.service,
+        headers: {}
+    });
+
+    sender.send(request, 'Meta::thriftIDL', null, null, onResponse);
+
+    function onResponse(err, res) {
+        if (err) {
+            delegate.error('Can\'t infer Thrift IDL from Meta::thriftIDL endpoint');
+            delegate.error(err);
+            delegate.error('Consider passing --thrift [dir/file] or --json');
+            return callback(err);
+        } else if (!res.ok) {
+            delegate.error('Can\'t infer Thrift IDL from Meta::thriftIDL endpoint');
+            delegate.error('Service returned unexpected Thrift exception');
+            delegate.error(res.body);
+            delegate.error('Consider passing --thrift [dir/file] or --json');
+            return callback(new Error('Unexpected Thrift exception'));
+        }
+        return callback(null, res.body);
+    }
 };
 
 TCurl.prototype.readThrift = function readThrift(opts, delegate) {
@@ -250,6 +295,7 @@ TCurl.prototype.request = function tcurlRequest(opts, delegate) {
     });
 
     var peer = subChan.peers.choosePeer();
+    assert(peer, 'peer required');
     // TODO: the host option should be called peer, hostPort, or address
     client.waitForIdentified({host: peer.hostPort}, onIdentified);
 
@@ -268,15 +314,15 @@ TCurl.prototype.request = function tcurlRequest(opts, delegate) {
             headers: headers
         });
 
-        if (opts.thrift) {
+        if (opts.argScheme === 'thrift') {
             self.asThrift(opts, request, delegate, done);
-        } else if (opts.http) {
+        } else if (opts.argScheme === 'http') {
             self.asHTTP(opts, client, subChan, delegate, done);
-        } else if (opts.raw) {
-            self.asRaw(opts, request, delegate, done);
-        } else {
+        } else if (opts.argScheme === 'json') {
             self.asJSON(opts, request, delegate, done);
             // TODO fix argument order for each of these
+        } else {
+            self.asRaw(opts, request, delegate, done);
         }
     }
 
@@ -288,43 +334,45 @@ TCurl.prototype.request = function tcurlRequest(opts, delegate) {
 TCurl.prototype.asThrift = function asThrift(opts, request, delegate, done) {
     var self = this;
 
-    var source = self.readThrift(opts, delegate);
+    self.getThriftSource(opts, request.channel, delegate, onThriftSource);
 
-    if (source === null) {
-        done();
-        return delegate.exit();
-    }
-
-    var sender;
-    try {
-        sender = new TChannelAsThrift({source: source, strict: opts.strict});
-    } catch (err) {
-        delegate.error('Error parsing Thrift IDL');
-        delegate.error(err);
-        delegate.error('Consider using --no-strict to bypass mandatory optional/required fields');
-        done();
-        return delegate.exit();
-    }
-
-    // The following is a hack to produce a nice error message when
-    // the endpoint does not exist. It is a temporary solution based
-    // on the thriftify interface. How the existence of this endpoint
-    // is checked and this error thrown will change when we move to
-    // the thriftrw rewrite.
-    try {
-        sender.send(request, opts.endpoint, opts.head,
-            opts.body, onResponse);
-    } catch (err) {
-        // TODO untangle this mess
-        if (err.message === fmt('type %s_args not found', opts.endpoint)) {
-            delegate.error(fmt('%s endpoint does not exist', opts.endpoint));
+    function onThriftSource(err, source) {
+        if (err) {
             done();
             return delegate.exit();
-        } else {
-            delegate.error('Error response received for the as-thrift request.');
+        }
+
+        var sender;
+        try {
+            sender = new TChannelAsThrift({source: source, strict: opts.strict});
+        } catch (err) {
+            delegate.error('Error parsing Thrift IDL');
             delegate.error(err);
+            delegate.error('Consider using --no-strict to bypass mandatory optional/required fields');
             done();
             return delegate.exit();
+        }
+
+        // The following is a hack to produce a nice error message when
+        // the endpoint does not exist. It is a temporary solution based
+        // on the thriftify interface. How the existence of this endpoint
+        // is checked and this error thrown will change when we move to
+        // the thriftrw rewrite.
+        try {
+            sender.send(request, opts.endpoint, opts.head,
+                opts.body, onResponse);
+        } catch (err) {
+            // TODO untangle this mess
+            if (err.message === fmt('type %s_args not found', opts.endpoint)) {
+                delegate.error(fmt('%s endpoint does not exist', opts.endpoint));
+                done();
+                return delegate.exit();
+            } else {
+                delegate.error('Error response received for the as-thrift request.');
+                delegate.error(err);
+                done();
+                return delegate.exit();
+            }
         }
     }
 

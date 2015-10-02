@@ -101,6 +101,56 @@ test('getting an ok response', function t(assert) {
 
 });
 
+test.only('getting an ok response using remote IDL', function t(assert) {
+    var serviceName = 'meta';
+    var server = new TChannel({
+        serviceName: serviceName
+    });
+
+    var hostname = '127.0.0.1';
+    var port = 4040;
+
+    // Register Meta::health and Meta::thriftIDL endpoints
+    /* eslint no-unused-vars: [0] */
+    var tchannelAsThrift = new TChannelAsThrift({
+        source: meta,
+        isHealthy: isHealthy,
+        channel: server
+    });
+
+    server.listen(port, hostname, onListening);
+    function onListening() {
+        var cmd = [
+            '-p', hostname + ':' + port,
+            serviceName,
+            'Meta::health',
+            '--body', JSON.stringify({})
+        ];
+
+        tcurl.exec(cmd, {
+            error: function error(err) {
+                assert.ifError(err);
+            },
+            response: function response(res) {
+                assert.deepEqual(res.body, {
+                    ok: true,
+                    message: null
+                }, 'caller receives thrift body from handler');
+            },
+            exit: function exit() {
+                server.close();
+                assert.end();
+            }
+        });
+    }
+
+    function isHealthy() {
+        return {
+            ok: true
+        };
+    }
+});
+
 test('hitting non-existent endpoint', function t(assert) {
 
     var serviceName = 'meta';

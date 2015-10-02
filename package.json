@@ -22,11 +22,10 @@
   "dependencies": {
     "debug-logtron": "^3.2.0",
     "minimist": "^1.1.1",
-    "my-local-ip": "^1.0.0",
     "process": "^0.11.0",
     "readable-stream": "^1.0.33",
     "safe-json-parse": "^4.0.0",
-    "tchannel": "2.10.1"
+    "tchannel": "3.3.0"
   },
   "devDependencies": {
     "coveralls": "^2.10.0",
