@@ -25,39 +25,45 @@
 var http = require('http');
 var ReadySignal = require('ready-signal/counted');
 var test = require('tape');
+var getPort = require('get-port');
 var tcurl = require('../index.js');
 var TChannel = require('tchannel');
 var TChannelAsHTTP = require('tchannel/as/http.js');
 
 test('getting an ok response', function t(assert) {
+    var hostname = '127.0.0.1';
     var serviceName = 'service';
+    var body = 'Hello Server';
+    var port;
+    var httpPort;
+
     var server = new TChannel({});
     var asHttpServer = TChannelAsHTTP();
     var subServer = server.makeSubChannel({
         serviceName: serviceName,
         streamed: true
     });
-    var httpServer = http.createServer(
-        function onRequest(hreq, hres) {
-            assert.equal(hreq.url, '/echo');
+    var httpServer = http.createServer(function onRequest(hreq, hres) {
+        assert.equal(hreq.url, '/echo');
 
-            assert.equals(hreq.headers.special, 'CQ', 'header should be CQ');
-            hreq.on('data', function onData(chunk) {
-                assert.equals(
-                    String(chunk),
-                    'Hello Server',
-                    'body should equal');
-            });
-            hreq.on('end', function onData() {
-              hres.writeHead(200, 'OK', {'Content-Type': 'text/plain'});
-              hres.end('Hello Test');
-          });
+        assert.equals(hreq.headers.special, 'CQ', 'header should be CQ');
+        hreq.on('data', function onData(chunk) {
+            assert.equals(
+                String(chunk),
+                body,
+                'body should equal');
         });
+        hreq.on('end', function onData() {
+          hres.writeHead(200, 'OK', {'Content-Type': 'text/plain'});
+          hres.end('Hello Test');
+      });
+    });
+
     asHttpServer.setHandler(subServer, function onRequest(req, res) {
         asHttpServer.forwardToHTTP(
             subServer, {
-                host: '127.0.0.1',
-                port: 8081
+                host: hostname,
+                port: httpPort
             },
             req,
             res,
@@ -69,8 +75,6 @@ test('getting an ok response', function t(assert) {
         );
     });
 
-    var hostname = '127.0.0.1';
-    var port = 4040;
     var endpoint = '/echo';
     var method = 'POST';
     var head = {
@@ -78,12 +82,33 @@ test('getting an ok response', function t(assert) {
        'Accept-Language': 'en-US',
        special: 'CQ'
     };
-    var body = 'Hello Server';
 
+    var readyPorts = ReadySignal(2);
     var ready = ReadySignal(2);
-    server.listen(port, hostname, ready.signal);
-    httpServer.listen(8081, '127.0.0.1', ready.signal);
+
+    getPort(function onPort(err, availablePort) {
+        if (err) {
+            assert.error(err);
+        }
+        port = availablePort;
+        readyPorts.signal();
+    });
+
+    getPort(function onPort(err, availablePort) {
+        if (err) {
+            assert.error(err);
+        }
+        httpPort = availablePort;
+        readyPorts.signal();
+    });
+
+    readyPorts(function onPorts() {
+        server.listen(port, hostname, ready.signal);
+        httpServer.listen(httpPort, hostname, ready.signal);
+    });
+
     ready(onListening);
+
     function onListening() {
         var cmd = [
             '-p',

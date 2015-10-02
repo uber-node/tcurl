@@ -25,6 +25,7 @@
 /*eslint max-params: [2, 5] */
 
 var test = require('tape');
+var getPort = require('get-port');
 var tcurl = require('../index.js');
 var TChannel = require('tchannel');
 var TChannelAsThrift = require('tchannel/as/thrift');
@@ -65,11 +66,19 @@ test('getting an ok', function t(assert) {
     };
 
     var hostname = '127.0.0.1';
-    var port = 4040;
+    var port;
     var endpoint = 'Meta::health';
     var serviceName = 'server';
     asThrift.register(server, endpoint, opts, goodHealth);
-    server.listen(port, hostname, onListening);
+
+    getPort(function onPort(err, availablePort) {
+        if (err) {
+            assert.error(err);
+        }
+        port = availablePort;
+        server.listen(port, hostname, onListening);
+    });
+
     function onListening() {
         var cmd = [
             '-p', hostname + ':' + port,
@@ -104,11 +113,19 @@ test('getting a notOk', function t(assert) {
     };
 
     var hostname = '127.0.0.1';
-    var port = 4040;
+    var port;
     var endpoint = 'Meta::health';
     var serviceName = 'server';
     asThrift.register(server, endpoint, opts, badHealth);
-    server.listen(port, hostname, onListening);
+
+    getPort(function onPort(err, availablePort) {
+        if (err) {
+            assert.error(err);
+        }
+        port = availablePort;
+        server.listen(port, hostname, onListening);
+    });
+
     function onListening() {
         var cmd = [
             '-p', hostname + ':' + port,
@@ -144,11 +161,19 @@ test('getting an error', function t(assert) {
     };
 
     var hostname = '127.0.0.1';
-    var port = 4040;
+    var port;
     var endpoint = 'Meta::health';
     var serviceName = 'server';
     asThrift.register(server, endpoint, opts, veryBadHealth);
-    server.listen(port, hostname, onListening);
+
+    getPort(function onPort(err, availablePort) {
+        if (err) {
+            assert.error(err);
+        }
+        port = availablePort;
+        server.listen(port, hostname, onListening);
+    });
+
     function onListening() {
         var cmd = [
             '-p', hostname + ':' + port,
@@ -186,11 +211,19 @@ test('test healthy endpoint with subprocess', function t(assert) {
     };
 
     var hostname = '127.0.0.1';
-    var port = 4040;
+    var port;
     var endpoint = 'Meta::health';
     var serviceName = 'server';
     asThrift.register(server, endpoint, opts, goodHealth);
-    server.listen(port, hostname, onListening);
+
+    getPort(function onPort(err, availablePort) {
+        if (err) {
+            assert.error(err);
+        }
+        port = availablePort;
+        server.listen(port, hostname, onListening);
+    });
+
     function onListening() {
         var cmd = [
             path.join(__dirname, '..', 'index.js'),
@@ -234,11 +267,19 @@ test('test un-healthy endpoint with subprocess', function t(assert) {
     };
 
     var hostname = '127.0.0.1';
-    var port = 4040;
+    var port;
     var endpoint = 'Meta::health';
     var serviceName = 'server';
     asThrift.register(server, endpoint, opts, badHealth);
-    server.listen(port, hostname, onListening);
+
+    getPort(function onPort(err, availablePort) {
+        if (err) {
+            assert.error(err);
+        }
+        port = availablePort;
+        server.listen(port, hostname, onListening);
+    });
+
     function onListening() {
         var cmd = [
             path.join(__dirname, '..', 'index.js'),
@@ -274,21 +315,28 @@ test('test un-healthy endpoint with subprocess', function t(assert) {
 
 test('test non-existent service with subprocess', function t(assert) {
     var hostname = '127.0.0.1';
-    var port = 4040;
+    var port;
     var serviceName = 'server';
 
-    var cmd = [
-        path.join(__dirname, '..', 'index.js'),
-        '-p', hostname + ':' + port,
-        serviceName,
-        null,
-        '--health'
-    ];
+    getPort(function onPort(err, availablePort) {
+        if (err) {
+            assert.error(err);
+        }
+        port = availablePort;
 
-    var proc = spawn('node', cmd);
-    proc.stdout.setEncoding('utf-8');
-    proc.stdout.on('data', onStdout);
-    proc.on('exit', onExit);
+        var cmd = [
+            path.join(__dirname, '..', 'index.js'),
+            '-p', hostname + ':' + port,
+            serviceName,
+            null,
+            '--health'
+        ];
+
+        var proc = spawn('node', cmd);
+        proc.stdout.setEncoding('utf-8');
+        proc.stdout.on('data', onStdout);
+        proc.on('exit', onExit);
+    });
 
     function onStdout(line) {
         assert.equal(line, 'NOT OK\n', 'expected stdout');
