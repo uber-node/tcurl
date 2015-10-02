@@ -51,12 +51,13 @@ var packageJson = require('./package.json');
 module.exports = main;
 
 var minimistArgs = {
-    boolean: ['raw', 'strict'],
+    boolean: ['raw', 'json', 'strict'],
     alias: {
         h: 'help',
         p: 'peer',
         H: 'hostlist',
         t: 'thrift',
+        j: 'json',
         2: ['arg2', 'head'],
         3: ['arg3', 'body']
     },
@@ -94,16 +95,20 @@ main.exec = function execMain(str, delegate) {
 function help() {
     var helpMessage = [
         'tcurl [-H <hostlist> | -p host:port] <service> <endpoint> [options]',
-        '  ',
+        '',
         '  Version: ' + packageJson.version,
+        '',
         '  Options: ',
         // TODO @file; @- stdin.
-        '    -2 [data] send an arg2 blob',
-        '    -3 [data] send an arg3 blob',
+        '    --head (-2) [data] JSON or raw',
+        '    --body (-3) [data] JSON or raw',
+        '      (JSON promoted to Thrift via IDL when applicable)',
         '    --shardKey send ringpop shardKey transport header',
         '    --depth=n configure inspect printing depth',
-        '    -t [dir] directory containing Thrift files',
+        '    --thrift (-t) [dir] directory containing Thrift files',
         '    --no-strict parse Thrift loosely',
+        '    --json (-j) Use JSON argument scheme',
+        '      (default unless endpoint has ::)',
         '    --http method',
         '    --raw encode arg2 & arg3 raw',
         '    --health',
@@ -140,6 +145,19 @@ function parseArgs(argv) {
     assert(health || endpoint, 'endpoint required');
     assert(service, 'service required');
 
+    var argScheme;
+    if (argv.raw) {
+        argScheme = 'raw';
+    } else if (argv.http) {
+        argScheme = 'http';
+    } else if (argv.json) {
+        argScheme = 'json';
+    } else if (argv.thrift || health || endpoint.indexOf('::') >= 0) {
+        argScheme = 'thrift';
+    } else {
+        argScheme = 'json';
+    }
+
     return {
         head: argv.head,
         body: argv.body,
@@ -147,10 +165,10 @@ function parseArgs(argv) {
         service: service,
         endpoint: endpoint,
         peers: peers,
+        argScheme: argScheme,
         thrift: argv.thrift,
         strict: argv.strict,
         http: argv.http,
-        json: argv.json,
         raw: argv.raw,
         timeout: argv.timeout,
         depth: argv.depth,
@@ -268,15 +286,15 @@ TCurl.prototype.request = function tcurlRequest(opts, delegate) {
             headers: headers
         });
 
-        if (opts.thrift) {
+        if (opts.argScheme === 'thrift') {
             self.asThrift(opts, request, delegate, done);
-        } else if (opts.http) {
+        } else if (opts.argScheme === 'http') {
             self.asHTTP(opts, client, subChan, delegate, done);
-        } else if (opts.raw) {
-            self.asRaw(opts, request, delegate, done);
-        } else {
+        } else if (opts.argScheme === 'json') {
             self.asJSON(opts, request, delegate, done);
             // TODO fix argument order for each of these
+        } else {
+            self.asRaw(opts, request, delegate, done);
         }
     }
 
