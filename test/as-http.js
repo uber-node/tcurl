@@ -25,7 +25,6 @@
 var http = require('http');
 var ReadySignal = require('ready-signal/counted');
 var test = require('tape');
-var getPort = require('get-port');
 var tcurl = require('../index.js');
 var TChannel = require('tchannel');
 var TChannelAsHTTP = require('tchannel/as/http.js');
@@ -83,29 +82,20 @@ test('getting an ok response', function t(assert) {
        special: 'CQ'
     };
 
-    var readyPorts = ReadySignal(2);
     var ready = ReadySignal(2);
 
-    getPort(function onPort(err, availablePort) {
-        if (err) {
-            assert.error(err);
-        }
-        port = availablePort;
-        readyPorts.signal();
-    });
+    function onServerListen() {
+        port = server.address().port;
+        ready.signal();
+    }
 
-    getPort(function onPort(err, availablePort) {
-        if (err) {
-            assert.error(err);
-        }
-        httpPort = availablePort;
-        readyPorts.signal();
-    });
+    function onHttpServerListen() {
+        httpPort = httpServer.address().port;
+        ready.signal();
+    }
 
-    readyPorts(function onPorts() {
-        server.listen(port, hostname, ready.signal);
-        httpServer.listen(httpPort, hostname, ready.signal);
-    });
+    server.listen(0, hostname, onServerListen);
+    httpServer.listen(0, hostname, onHttpServerListen);
 
     ready(onListening);
 

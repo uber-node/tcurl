@@ -24,7 +24,6 @@
 
 var timers = require('timers');
 var test = require('tape');
-var getPort = require('get-port');
 var tcurl = require('../index.js');
 var TChannel = require('tchannel');
 var TChannelJSON = require('tchannel/as/json.js');
@@ -60,13 +59,12 @@ test('getting an ok response', function t(assert) {
     var tchannelJSON = TChannelJSON();
     tchannelJSON.register(server, endpoint, opts, echo);
 
-    getPort(function onPort(err, availablePort) {
-        if (err) {
-            assert.error(err);
-        }
-        port = availablePort;
-        server.listen(port, hostname, onListening);
-    });
+    function onServerListen() {
+        port = server.address().port;
+        onListening();
+    }
+
+    server.listen(0, hostname, onServerListen);
 
     function onListening() {
         var cmd = [
@@ -140,13 +138,12 @@ test('timeouts work', function t(assert) {
     var tchannelJSON = TChannelJSON();
     tchannelJSON.register(server, endpoint, opts, slowEcho);
 
-    getPort(function onPort(err, availablePort) {
-        if (err) {
-            assert.error(err);
-        }
-        port = availablePort;
-        server.listen(port, hostname, onListening);
-    });
+    function onServerListen() {
+        port = server.address().port;
+        onListening();
+    }
+
+    server.listen(0, hostname, onServerListen);
 
     function onListening() {
         var cmd = [

@@ -25,7 +25,6 @@
 var test = require('tape');
 var fs = require('fs');
 var path = require('path');
-var getPort = require('get-port');
 var tcurl = require('../index.js');
 var TChannel = require('tchannel');
 var TChannelAsThrift = require('tchannel/as/thrift.js');
@@ -48,13 +47,12 @@ test('getting an ok response', function t(assert) {
     var tchannelAsThrift = TChannelAsThrift({source: meta});
     tchannelAsThrift.register(server, endpoint, opts, health);
 
-    getPort(function onPort(err, availablePort) {
-        if (err) {
-            assert.error(err);
-        }
-        port = availablePort;
-        server.listen(port, hostname, onListening);
-    });
+    function onServerListen() {
+        port = server.address().port;
+        onListening();
+    }
+
+    server.listen(0, hostname, onServerListen);
 
     function onListening() {
         var cmd = [
@@ -124,13 +122,12 @@ test('hitting non-existent endpoint', function t(assert) {
     var tchannelAsThrift = TChannelAsThrift({source: meta});
     tchannelAsThrift.register(server, endpoint, {}, noop);
 
-    getPort(function onPort(err, availablePort) {
-        if (err) {
-            assert.error(err);
-        }
-        port = availablePort;
-        server.listen(port, hostname, onListening);
-    });
+    function onServerListen() {
+        port = server.address().port;
+        onListening();
+    }
+
+    server.listen(0, hostname, onServerListen);
 
     function onListening() {
         var cmd = [
@@ -170,13 +167,12 @@ test('fails to run for invalid thrift', function t(assert) {
     var hostname = '127.0.0.1';
     var port;
 
-    getPort(function onPort(err, availablePort) {
-        if (err) {
-            assert.error(err);
-        }
-        port = availablePort;
-        server.listen(port, hostname, onListening);
-    });
+    function onServerListen() {
+        port = server.address().port;
+        onListening();
+    }
+
+    server.listen(0, hostname, onServerListen);
 
     function onListening() {
 
@@ -224,13 +220,12 @@ test('tolerates loose thrift with --no-strict', function t(assert) {
     var hostname = '127.0.0.1';
     var port;
 
-    getPort(function onPort(err, availablePort) {
-        if (err) {
-            assert.error(err);
-        }
-        port = availablePort;
-        server.listen(port, hostname, onListening);
-    });
+    function onServerListen() {
+        port = server.address().port;
+        onListening();
+    }
+
+    server.listen(0, hostname, onServerListen);
 
     var tchannelAsThrift = TChannelAsThrift({source: legacy, strict: false});
     tchannelAsThrift.register(server, 'Pinger::ping', {}, ping);
