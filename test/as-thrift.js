@@ -41,13 +41,19 @@ test('getting an ok response', function t(assert) {
 
     var opts = {isOptions: true};
     var hostname = '127.0.0.1';
-    var port = 4040;
+    var port;
     var endpoint = 'Meta::health';
 
     var tchannelAsThrift = TChannelAsThrift({source: meta});
     tchannelAsThrift.register(server, endpoint, opts, health);
 
-    server.listen(port, hostname, onListening);
+    function onServerListen() {
+        port = server.address().port;
+        onListening();
+    }
+
+    server.listen(0, hostname, onServerListen);
+
     function onListening() {
         var cmd = [
             '-p', hostname + ':' + port,
@@ -109,14 +115,20 @@ test('hitting non-existent endpoint', function t(assert) {
     });
 
     var hostname = '127.0.0.1';
-    var port = 4040;
+    var port;
     var endpoint = 'Meta::health';
     var nonexistentEndpoint = endpoint + 'Foo';
 
     var tchannelAsThrift = TChannelAsThrift({source: meta});
     tchannelAsThrift.register(server, endpoint, {}, noop);
 
-    server.listen(port, hostname, onListening);
+    function onServerListen() {
+        port = server.address().port;
+        onListening();
+    }
+
+    server.listen(0, hostname, onServerListen);
+
     function onListening() {
         var cmd = [
             '-p', hostname + ':' + port,
@@ -153,14 +165,19 @@ test('fails to run for invalid thrift', function t(assert) {
     });
 
     var hostname = '127.0.0.1';
-    var port = 4040;
+    var port;
 
-    server.listen(port, hostname, onListening);
+    function onServerListen() {
+        port = server.address().port;
+        onListening();
+    }
+
+    server.listen(0, hostname, onServerListen);
 
     function onListening() {
 
         var cmd = [
-            '-p', '127.0.0.1:4040',
+            '-p', [hostname, port].join(':'),
             'no-service',
             'no-endpoint',
             '-t', path.join(__dirname, 'legacy.thrift')
@@ -201,9 +218,14 @@ test('tolerates loose thrift with --no-strict', function t(assert) {
     });
 
     var hostname = '127.0.0.1';
-    var port = 4040;
+    var port;
 
-    server.listen(port, hostname, onListening);
+    function onServerListen() {
+        port = server.address().port;
+        onListening();
+    }
+
+    server.listen(0, hostname, onServerListen);
 
     var tchannelAsThrift = TChannelAsThrift({source: legacy, strict: false});
     tchannelAsThrift.register(server, 'Pinger::ping', {}, ping);
@@ -211,7 +233,7 @@ test('tolerates loose thrift with --no-strict', function t(assert) {
     function onListening() {
 
         var cmd = [
-            '-p', '127.0.0.1:4040',
+            '-p', [hostname, port].join(':'),
             'legacy',
             'Pinger::ping',
             '--no-strict',

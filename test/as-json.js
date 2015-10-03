@@ -50,7 +50,7 @@ test('getting an ok response', function t(assert) {
     };
 
     var hostname = '127.0.0.1';
-    var port = 4040;
+    var port;
     var endpoint = 'echo';
     var head = {some: 'echo-head'};
     var body = {some: 'body'};
@@ -59,7 +59,13 @@ test('getting an ok response', function t(assert) {
     var tchannelJSON = TChannelJSON();
     tchannelJSON.register(server, endpoint, opts, echo);
 
-    server.listen(port, hostname, onListening);
+    function onServerListen() {
+        port = server.address().port;
+        onListening();
+    }
+
+    server.listen(0, hostname, onServerListen);
+
     function onListening() {
         var cmd = [
             '-p', hostname + ':' + port,
@@ -123,7 +129,7 @@ test('timeouts work', function t(assert) {
     };
 
     var hostname = '127.0.0.1';
-    var port = 4040;
+    var port;
     var endpoint = 'echo';
     var head = {some: 'echo-head'};
     var body = {some: 'body'};
@@ -132,7 +138,13 @@ test('timeouts work', function t(assert) {
     var tchannelJSON = TChannelJSON();
     tchannelJSON.register(server, endpoint, opts, slowEcho);
 
-    server.listen(port, hostname, onListening);
+    function onServerListen() {
+        port = server.address().port;
+        onListening();
+    }
+
+    server.listen(0, hostname, onServerListen);
+
     function onListening() {
         var cmd = [
             '-p', hostname + ':' + port,
