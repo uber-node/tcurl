@@ -31,6 +31,11 @@ var TChannelAsJSON = require('tchannel/as/json');
 var minimist = require('minimist');
 var myLocalIp = require('my-local-ip');
 var DebugLogtron = require('debug-logtron');
+var rc = require('rc');
+var rcUtils = require('rc/lib/utils');
+var camelCaseKeys = require('camelcase-keys');
+var traverse = require('traverse');
+var extend = require('xtend');
 
 var fmt = require('util').format;
 var console = require('console');
@@ -51,6 +56,7 @@ var packageJson = require('./package.json');
 module.exports = main;
 
 var minimistArgs = {
+    string: ['thrift', 'json', 'head', 'body'],
     boolean: ['raw', 'json', 'strict'],
     alias: {
         h: 'help',
@@ -58,8 +64,10 @@ var minimistArgs = {
         H: 'hostlist',
         t: 'thrift',
         j: 'json',
-        2: ['arg2', 'head'],
-        3: ['arg3', 'body']
+        2: 'head',
+        3: 'body',
+        arg2: 'head',
+        arg3: 'body'
     },
     default: {
         head: '',
@@ -70,11 +78,20 @@ var minimistArgs = {
 
 // delegate implements error(message, err), response(res), exit()
 function main(argv, delegate) {
-    if (argv.help || argv._.length === 0) {
+
+    argv = minimist(argv, minimistArgs);
+
+    var conf = extend(
+        rc('tcurl', {}, argv),
+        env(),
+        argv
+    );
+
+    if (conf.help || conf._.length === 0) {
         return help();
     }
 
-    var opts = parseArgs(argv);
+    var opts = parseArgs(conf);
     var tcurl = new TCurl();
 
     if (opts.health) {
@@ -88,8 +105,19 @@ function main(argv, delegate) {
     return tcurl.request(opts, delegate);
 }
 
+function env() {
+    var envConf = rcUtils.env('TCURL_');
+    return traverse(envConf).map(camelcaseObjectKeys);
+
+    function camelcaseObjectKeys(value) {
+        if (typeof value === 'object') {
+            this.update(camelCaseKeys(value));
+        }
+    }
+}
+
 main.exec = function execMain(str, delegate) {
-    main(minimist(str, minimistArgs), delegate);
+    main(str, delegate);
 };
 
 function help() {
@@ -123,8 +151,9 @@ function parseArgs(argv) {
     var endpoint = argv._[1];
     var health = argv.health;
 
-    var peers = argv.hostlist ?
-        JSON.parse(fs.readFileSync(argv.hostlist)) : [argv.peer];
+    // Prefer peer specified at the command line over hostlist
+    var peers = argv.peer || !argv.hostlist ?
+        [argv.peer] : JSON.parse(fs.readFileSync(argv.hostlist));
 
     var ip;
     function normalizePeer(address) {
@@ -408,5 +437,5 @@ TCurl.prototype.onResponse = function onResponse(err, res, arg2, arg3, opts, del
 };
 
 if (require.main === module) {
-    main(minimist(process.argv.slice(2), minimistArgs));
+    main(process.argv.slice(2));
 }
