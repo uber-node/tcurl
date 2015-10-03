@@ -313,7 +313,6 @@ test('test non-existent service with subprocess', function t(assert) {
     var port;
     var serviceName = 'server';
     var server = net.createServer();
-    server.unref();
 
     function onServerListen() {
         port = server.address().port;
