@@ -46,7 +46,7 @@ a tchannel service. It supports thrift, JSON, and raw request format.
     Specify the head (a.k.a. arg2) of the request. The content can be either a
     raw string or a JSON string depending on the request format.
 
-`-2 | --arg3 | --body content`
+`-3 | --arg3 | --body content`
     Specify the body (a.k.a. arg3) of the request. The content can be either a
     raw string or a JSON string depending on the request format.
 
