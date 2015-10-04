@@ -38,6 +38,7 @@
     "istanbul": "^0.3.5",
     "itape": "^1.5.0",
     "lint-trap": "^1.0.0",
+    "marked-man": "^0.1.5",
     "opn": "^1.0.1",
     "ready-signal": "^1.2.0",
     "tape": "^3.4.0",
@@ -61,7 +62,8 @@
     "test-cover": "istanbul cover --report html --print detail -- test/index.js",
     "trace": "itape test/index.js --trace",
     "travis": "npm run cover -s && istanbul report lcov && ((cat coverage/lcov.info | coveralls) || exit 0)",
-    "view-cover": "opn ./coverage/index.html"
+    "view-cover": "opn ./coverage/index.html",
+    "man": "bash scripts/create-man.sh"
   },
   "engines": {
     "node": ">= 0.10.x"
