@@ -1,0 +1,178 @@
+.TH "TCURL" "1" "October 2015" "v4.13.1" "tcurl"
+.SH "NAME"
+\fBtcurl\fR \- curl for tchannel
+.SH SYNOPSIS
+.P
+\fBtcurl\fP [\-\-help] [\-H] [\-p] [\-t]
+        [\-2 | \-\-arg2 | \-\-head] [\-3 | \-\-arg3 | \-\-body]
+        [\-\-shardKey] [\-\-no\-strict] [\-\-timeout]
+        [\-\-http] [\-\-raw] [\-\-health]
+.SH DESCRIPTION
+.P
+\fBtcurl\fP is a tool for constructing and sending requests to
+a tchannel service\. It supports thrift, JSON, and raw request format\.
+.SH EXAMPLES
+.RS 0
+.IP \(bu 2
+\fBtcurl \-p localhost:8080 serviceName \-\-health\fP
+.IP \(bu 2
+\fBtcurl \-p 127\.0\.0\.1:21300 hyperbahn Hyperbahn::discover \-t \./hyperbahn\.thrift \-3 '{"query":{"serviceName":"ringpop"}}'\fP
+.IP \(bu 2
+\fBtcurl \-p localhost:8080 serviceName endpoint \-\-raw \-3 'message'\fP
+
+.RE
+.SH OPTIONS
+.P
+\fB\-p host:port serviceName [endpoint]\fP
+    Specify the destination where the request should be sent to
+    including the host, the port, the serviceName, and the endpoint\.
+    When used with \-\-health, endpoint is not required\.
+.P
+\fB\-H host\-file serviceName [endpoint]\fP
+    Similar to the \fB\-p\fP option\. Instead of the host:port, it takes a host\-file
+    that contains a list of host:port where this request can be sent to\.
+    TChannel will only pick one host:port to send the request to\.
+.P
+\fB\-\-health\fP
+    Send a health check request to a sevice that implements the "Meta::health"
+    health check endpoint\.
+    For example:
+.P
+.RS 2
+.nf
+```
+tcurl \-p 127\.0\.0\.1:21300 serviceName \-\-heath
+```
+It is the same as:
+```
+tcurl \-p 127\.0\.0\.1:21300 serviceName Meta::health \-t meta\.thrift
+```
+.fi
+.RE
+.P
+\fB\-2 | \-\-arg2 | \-\-head content\fP
+    Specify the head (a\.k\.a\. arg2) of the request\. The content can be either a
+    raw string or a JSON string depending on the request format\.
+.P
+\fB\-3 | \-\-arg3 | \-\-body content\fP
+    Specify the body (a\.k\.a\. arg3) of the request\. The content can be either a
+    raw string or a JSON string depending on the request format\.
+.P
+.RS 2
+.nf
+An example of a JSON string would be
+```
+\|'{"query":{"serviceName":"ringpop"}}',
+```
+
+where the corresponding thrift IDL format is:
+```
+struct DiscoveryQuery {
+  1: required string serviceName
+}
+
+service Hyperbahn {
+    DiscoveryResult discover(
+        1: required DiscoveryQuery query
+    )
+}
+```
+.fi
+.RE
+.P
+\fB\-t thrift\fP
+    Used with the thrift encoding to specify the path to the thrift files\.
+    The thrift option value can either point to a file or a directory\.
+    For example:
+.P
+.RS 2
+.nf
+```
+tcurl \-p 127\.0\.0\.1:21300 serviceName Meta::health \-t \. \-3 null
+```
+The above command assumes that current folder contains the meta\.thrift IDL file\.
+.fi
+.RE
+.P
+\fB\-\-no\-strict\fP
+    Disable the default strict mode of thrift parsing\. When strict mode is enabled,
+    all fields must be specified as either "required" or "optional"\.
+.P
+\fB\-\-raw\fP
+    Use raw format (i\.e\. plain text) for request\.
+.P
+\fB\-\-http method\fP
+    Send an http request described in the form of tchannel\.
+    For example:
+.P
+.RS 2
+.nf
+```
+tcurl \-p 127\.0\.0\.1:21300 echoServer '/echo' \-\-http 'POST' \-\-head '{"Accept": "text/plain"}' \-\-body '"hello world!"'
+```
+.fi
+.RE
+.P
+\fB\-\-timeout value\fP
+    Specify the maximum time in miniseconds this request can take
+    until it timeout\. 
+    For example, the following command specifies a timeout value
+    of one second:
+.P
+.RS 2
+.nf
+```
+tcurl \-p 127\.0\.0\.1:8080 serviceName endpoint \-\-timeout 1000 
+```
+.fi
+.RE
+.P
+\fB\-\-shardKey\fP
+    Ringpop only\. Send ringpop shardKey transport header\.
+.SH EXIT CODES
+.RS 0
+.IP \(bu 2
+\fB0: for all successful requests\fP
+.IP \(bu 2
+\fB1: timeout\fP
+.IP \(bu 2
+\fB2: cancelled\fP
+.IP \(bu 2
+\fB3: busy\fP
+.IP \(bu 2
+\fB4: declined\fP
+.IP \(bu 2
+\fB5: unexpected error\fP
+.IP \(bu 2
+\fB6: bad request\fP
+.IP \(bu 2
+\fB7: network error\fP
+.IP \(bu 2
+\fB8: unhealthy (broken circuit)\fP
+.IP \(bu 2
+\fB124: unhealthy / not OK thrift response\fP
+.IP \(bu 2
+\fB125: misc tcurl / tchannel internal error\fP
+.IP \(bu 2
+\fB126: response not ok error\fP
+.IP \(bu 2
+\fB127: fatal protocol error\fP
+
+.RE
+.SH BUGS
+.P
+Please report any bugs to https://github\.com/uber/tcurl
+.SH LICENCE
+.P
+MIT Licenced
+.SH SEE ALSO
+.RS 0
+.IP \(bu 2
+\fBTChannel: https://github\.com/uber/tchannel\fP
+.IP \(bu 2
+\fBHyperbahn: https://github\.com/uber/hyperbahn\fP
+.IP \(bu 2
+\fBRingpop: https://github\.com/uber/ringpop\-node\fP
+
+.RE
+

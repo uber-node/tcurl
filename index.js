@@ -40,6 +40,7 @@ var extend = require('xtend');
 var fmt = require('util').format;
 var console = require('console');
 var process = require('process');
+var spawn = require('child_process').spawn;
 var fs = require('fs');
 var path = require('path');
 var url = require('url');
@@ -51,15 +52,12 @@ var Logger = require('./logger');
 var HealthLogger = require('./health-logger');
 var TCurlAsHttp = require('./as-http');
 
-var packageJson = require('./package.json');
-
 module.exports = main;
 
 var minimistArgs = {
     string: ['thrift', 'json', 'head', 'body'],
     boolean: ['raw', 'json', 'strict'],
     alias: {
-        h: 'help',
         p: 'peer',
         H: 'hostlist',
         t: 'thrift',
@@ -87,7 +85,9 @@ function main(argv, delegate) {
         argv
     );
 
-    if (conf.help || conf._.length === 0) {
+    if (conf.help) {
+        return printFullHelp();
+    } else if (conf.h || conf._.length === 0) {
         return help();
     }
 
@@ -121,29 +121,22 @@ main.exec = function execMain(str, delegate) {
 };
 
 function help() {
-    var helpMessage = [
-        'tcurl [-H <hostlist> | -p host:port] <service> <endpoint> [options]',
-        '',
-        '  Version: ' + packageJson.version,
-        '',
-        '  Options: ',
-        // TODO @file; @- stdin.
-        '    --head (-2) [data] JSON or raw',
-        '    --body (-3) [data] JSON or raw',
-        '      (JSON promoted to Thrift via IDL when applicable)',
-        '    --shardKey send ringpop shardKey transport header',
-        '    --depth=n configure inspect printing depth',
-        '    --thrift (-t) [dir] directory containing Thrift files',
-        '    --no-strict parse Thrift loosely',
-        '    --json (-j) Use JSON argument scheme',
-        '      (default unless endpoint has ::)',
-        '    --http method',
-        '    --raw encode arg2 & arg3 raw',
-        '    --health',
-        '    --timeout [num]'
-    ].join('\n');
-    console.log(helpMessage);
-    return;
+    console.log('usage: tcurl [--help] [-H] [-p] [-t]');
+    console.log('             [-2 | --arg2 | --head] [-3 | --arg3 | --body]');
+    console.log('             [--shardKey] [--no-strict]  [--timeout]');
+    console.log('             [--http] [--raw] [--health]');
+}
+
+function printFullHelp() {
+    var options = {
+        cwd: process.cwd(),
+        /*eslint no-process-env: [0] */
+        env: process.env,
+        setsid: false,
+        customFds: [0, 1, 2]
+    };
+
+    spawn('man', [path.join(__dirname, 'man', 'tcurl.1')], options);
 }
 
 function parseArgs(argv) {
@@ -200,7 +193,6 @@ function parseArgs(argv) {
         http: argv.http,
         raw: argv.raw,
         timeout: argv.timeout,
-        depth: argv.depth,
         health: health
     };
 }
