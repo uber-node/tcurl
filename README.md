@@ -8,7 +8,7 @@
 
 <!-- [![NPM][npm-png]][npm] -->
 
-A command line utility to talk to a tchannel server
+A command line utility to talk to a tchannel server.
 
 ```
 tcurl [-H <hostlist> | -p host:port] <service> <endpoint> [options]
@@ -30,6 +30,8 @@ tcurl [-H <hostlist> | -p host:port] <service> <endpoint> [options]
     --health
     --timeout [num]
 ```
+
+[Click here for full usage docs.](usage.md)
 
 ## Installation
 
