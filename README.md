@@ -8,20 +8,30 @@
 
 <!-- [![NPM][npm-png]][npm] -->
 
-A command line utility to talk to a tchannel server
+A command line utility to talk to a tchannel server.
 
 ```
-tcurl -p host:port <service> <endpoint> [options]
+tcurl [-H <hostlist> | -p host:port] <service> <endpoint> [options]
+
+  Version: 4.14.0
 
   Options:
-    -2 [data] send an arg2 blob
-    -3 [data] send an arg3 blob
+    --head (-2) [data] JSON or raw
+    --body (-3) [data] JSON or raw
+      (JSON promoted to Thrift via IDL when applicable)
     --shardKey send ringpop shardKey transport header
     --depth=n configure inspect printing depth
-    -j print JSON
-    -J [indent] print JSON with indentation
-    -t [dir] directory containing Thrift files
+    --thrift (-t) [dir] directory containing Thrift files
+    --no-strict parse Thrift loosely
+    --json (-j) Use JSON argument scheme
+      (default unless endpoint has ::)
+    --http method
+    --raw encode arg2 & arg3 raw
+    --health
+    --timeout [num]
 ```
+
+[Click here for full usage docs.](usage.md)
 
 ## Installation
 
