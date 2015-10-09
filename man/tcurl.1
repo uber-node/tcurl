@@ -1,9 +1,9 @@
-.TH "TCURL" "1" "October 2015" "v4.13.1" "tcurl"
+.TH "TCURL" "1" "October 2015" "v4.15.0" "tcurl"
 .SH "NAME"
 \fBtcurl\fR \- curl for tchannel
 .SH SYNOPSIS
 .P
-\fBtcurl\fP [\-\-help] [\-H] [\-p] [\-t]
+\fBtcurl\fP [\-\-help] [\-v | \-\-version] [\-H] [\-p] [\-t]
         [\-2 | \-\-arg2 | \-\-head] [\-3 | \-\-arg3 | \-\-body]
         [\-\-shardKey] [\-\-no\-strict] [\-\-timeout]
         [\-\-http] [\-\-raw] [\-\-health]
@@ -22,6 +22,9 @@ a tchannel service\. It supports thrift, JSON, and raw request format\.
 
 .RE
 .SH OPTIONS
+.P
+\fB\-v | \-\-version\fP
+    Print the current version\.
 .P
 \fB\-p host:port serviceName [endpoint]\fP
     Specify the destination where the request should be sent to

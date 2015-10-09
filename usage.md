@@ -2,7 +2,7 @@
 
 ## SYNOPSIS
 
-`tcurl` [--help] [-H] [-p] [-t]
+`tcurl` [--help] [-v | --version] [-H] [-p] [-t]
         [-2 | --arg2 | --head] [-3 | --arg3 | --body]
         [--shardKey] [--no-strict] [--timeout]
         [--http] [--raw] [--health]
@@ -19,6 +19,9 @@ a tchannel service. It supports thrift, JSON, and raw request format.
  - `tcurl -p localhost:8080 serviceName endpoint --raw -3 'message'`
 
 ## OPTIONS
+
+`-v | --version`
+    Print the current version.
 
 `-p host:port serviceName [endpoint]`
     Specify the destination where the request should be sent to

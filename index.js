@@ -52,12 +52,15 @@ var Logger = require('./logger');
 var HealthLogger = require('./health-logger');
 var TCurlAsHttp = require('./as-http');
 
+var packageJson = require('./package.json');
+
 module.exports = main;
 
 var minimistArgs = {
     string: ['thrift', 'json', 'head', 'body'],
     boolean: ['raw', 'json', 'strict'],
     alias: {
+        v: 'version',
         p: 'peer',
         H: 'hostlist',
         t: 'thrift',
@@ -84,6 +87,11 @@ function main(argv, delegate) {
         env(),
         argv
     );
+
+    if (conf.version) {
+        delegate = delegate || new Logger();
+        return delegate.log(packageJson.version);
+    }
 
     if (conf.help) {
         return printFullHelp();
@@ -121,7 +129,7 @@ main.exec = function execMain(str, delegate) {
 };
 
 function help() {
-    console.log('usage: tcurl [--help] [-H] [-p] [-t]');
+    console.log('usage: tcurl [--help] [-v | --version] [-H] [-p] [-t]');
     console.log('             [-2 | --arg2 | --head] [-3 | --arg3 | --body]');
     console.log('             [--shardKey] [--no-strict]  [--timeout]');
     console.log('             [--http] [--raw] [--health]');
