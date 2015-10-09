@@ -28,7 +28,7 @@
     "rc": "^1.1.2",
     "readable-stream": "^1.0.33",
     "safe-json-parse": "^4.0.0",
-    "tchannel": "2.10.1",
+    "tchannel": "3.4.4",
     "traverse": "^0.6.6",
     "xtend": "^4.0.0"
   },
@@ -58,7 +58,7 @@
     "check-ls": "npm ls",
     "cover": "npm run test-cover -s && npm run check-cover -s",
     "lint": "standard -v",
-    "test": "npm run check-ls -s && npm run lint -s && npm run cover -s",
+    "test": "npm run check-ls -s && npm run lint -s && npm run man && npm run cover -s",
     "test-cover": "istanbul cover --report html --print detail -- test/index.js",
     "trace": "itape test/index.js --trace",
     "travis": "npm run cover -s && istanbul report lcov && ((cat coverage/lcov.info | coveralls) || exit 0)",
