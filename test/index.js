@@ -25,3 +25,4 @@ require('./as-thrift.js');
 require('./as-json.js');
 require('./as-http.js');
 require('./health.js');
+require('./benchmark.js');
