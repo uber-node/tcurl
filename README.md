@@ -11,31 +11,29 @@
 A command line utility to talk to a tchannel server.
 
 ```
-tcurl [-H <hostlist> | -p host:port] <service> <endpoint> [options]
+usage: tcurl <service> <endpoint> <options>
 
-  Version: 4.14.0
-
-  Options:
-    --head (-2) [data] JSON or raw
-    --body (-3) [data] JSON or raw
-      (JSON promoted to Thrift via IDL when applicable)
-    --shardKey send ringpop shardKey transport header
-    --depth=n configure inspect printing depth
-    --thrift (-t) [dir] directory containing Thrift files
-    --no-strict parse Thrift loosely
-    --json (-j) Use JSON argument scheme
-      (default unless endpoint has ::)
-    --http method
-    --raw encode arg2 & arg3 raw
-    --health
-    --timeout [num]
+Options:
+  -h --help                 Show detailed manpage
+  -v --version              Print version
+  -H --hostlist             Path to hostlist file
+  -p --peer                 IP and port of single peer
+  -t --thrift               Path to thrift IDL file
+  -2 --head <value>         Set header to <value>
+  -3 --body <value>         Set body to <value>
+     --http <method>        Use HTTP <method> instead of TCP
+     --health               Print health for <service>
+     --raw                  Send header and body as binary diaray
+     --shardKey             Send Ringpop shardKey transport header
+     --no-strict            Parse thrift IDL files loosely
+     --timeout <value>      Set a timeout value in milliseconds
 ```
 
 [Click here for full usage docs.](usage.md)
 
 ## Installation
 
-`npm install tcurl`
+`npm install tcurl --global`
 
 ## Examples
 
@@ -65,14 +63,15 @@ tcurl -p localhost:1234 chamber Chamber::echo -t ./services -3 '{"request": {"in
 
 ## `localhost` caveat
 
-For TChannel and Hyperbahn to work together effectively, most tchannel services need to listen on the
-external IP of the host they are running on.
+For TChannel and Hyperbahn to work together effectively, most tchannel services
+need to listen on the external IP of the host they are running on.
 
-This means when you use `127.0.0.1` you cannot reach the service with tcurl as it's not listening on
-loopback.
+This means when you use `127.0.0.1` you cannot reach the service with tcurl as
+it's not listening on loopback.
 
-To make supporting external IPs easier we've made `localhost` resolve to the external IP of the machine.
-This means if your listening on loopback you have to use `127.0.0.1` and not `localhost`
+To make supporting external IPs easier we've made `localhost` resolve to the
+external IP of the machine. This means if your listening on loopback you have
+to use `127.0.0.1` and not `localhost`
 
 ## Exit Codes
 
@@ -105,6 +104,7 @@ This means if your listening on loopback you have to use `127.0.0.1` and not `lo
  - Raynos
  - ShanniLi
  - kriskowal
+ - malandrew
 
 ## MIT Licenced
 

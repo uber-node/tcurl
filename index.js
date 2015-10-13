@@ -96,7 +96,7 @@ function main(argv, delegate) {
     if (conf.help) {
         return printFullHelp();
     } else if (conf.h || conf._.length === 0) {
-        return help();
+        return help(conf.helpUrl);
     }
 
     var opts = parseArgs(conf);
@@ -128,11 +128,29 @@ main.exec = function execMain(str, delegate) {
     main(str, delegate);
 };
 
-function help() {
-    console.log('usage: tcurl [--help] [-v | --version] [-H] [-p] [-t]');
-    console.log('             [-2 | --arg2 | --head] [-3 | --arg3 | --body]');
-    console.log('             [--shardKey] [--no-strict]  [--timeout]');
-    console.log('             [--http] [--raw] [--health]');
+function help(helpUrl) {
+    console.log('usage: tcurl <service> <endpoint> <options>');
+    console.log('');
+    console.log('Options:');
+    console.log('  -h --help                 Show detailed manpage');
+    console.log('  -v --version              Print version');
+    console.log('  -H --hostlist             Path to hostlist file');
+    console.log('  -p --peer                 IP and port of single peer');
+    console.log('  -t --thrift               Path to thrift IDL file');
+    console.log('  -2 --head <value>         Set header to <value>');
+    console.log('  -3 --body <value>         Set body to <value>');
+    console.log('     --http <method>        Use HTTP <method> instead of TCP');
+    console.log('     --health               Print health for <service>');
+    console.log('     --raw                  Send header and body as binary diaray')
+    console.log('     --shardKey             Send Ringpop shardKey transport header');
+    console.log('     --no-strict            Parse thrift IDL files loosely');
+    console.log('     --timeout <value>      Set a timeout value in milliseconds');
+    if (typeof helpUrl === 'string' && helpUrl.length > 0) {
+        console.log('');
+        console.log('More information on how tcurl is used by your');
+        console.log('organization can be found at:');
+        console.log(helpUrl);
+    }
 }
 
 function printFullHelp() {

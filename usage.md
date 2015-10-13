@@ -2,15 +2,27 @@
 
 ## SYNOPSIS
 
-`tcurl` [--help] [-v | --version] [-H] [-p] [-t]
-        [-2 | --arg2 | --head] [-3 | --arg3 | --body]
-        [--shardKey] [--no-strict] [--timeout]
-        [--http] [--raw] [--health]
+`tcurl` <service> <endpoint> <options>
+
+Options:
+  -h --help                 Show detailed manpage
+  -v --version              Print version
+  -H --hostlist             Path to hostlist file
+  -p --peer                 IP and port of single peer
+  -t --thrift               Path to thrift IDL file
+  -2 --head <value>         Set header to <value>
+  -3 --body <value>         Set body to <value>
+     --http <method>        Use HTTP <method> instead of TCP
+     --health               Print health for <service>
+     --raw                  Send header and body as binary diaray
+     --shardKey             Send Ringpop shardKey transport header
+     --no-strict            Parse thrift IDL files loosely
+     --timeout <value>      Set a timeout value in milliseconds
 
 ## DESCRIPTION
 
-`tcurl` is a tool for constructing and sending requests to
-a tchannel service. It supports thrift, JSON, and raw request format.
+`tcurl` is a tool for constructing and sending requests to a tchannel service.
+It supports Thrift, JSON, and raw request format.
 
 ## EXAMPLES
 
@@ -23,15 +35,22 @@ a tchannel service. It supports thrift, JSON, and raw request format.
 `-v | --version`
     Print the current version.
 
-`-p host:port serviceName [endpoint]`
-    Specify the destination where the request should be sent to
-    including the host, the port, the serviceName, and the endpoint.
-    When used with --health, endpoint is not required.
+`-p | --peer host:port serviceName <endpoint>`
+    Specify the destination where the request should be sent to including the
+    host, the port, the serviceName, and the endpoint. When used with --health,
+    endpoint is not required.
 
-`-H host-file serviceName [endpoint]`
+`-H | --hostfile </path/to/hostfile> <serviceName> <endpoint>`
     Similar to the `-p` option. Instead of the host:port, it takes a host-file
     that contains a list of host:port where this request can be sent to.
-    TChannel will only pick one host:port to send the request to.
+    TChannel will only pick one host:port to send the request to. An example
+    hostfile with two hyperbahn hosts:
+    ```
+    [
+        "127.0.0.1:21300",
+        "127.0.0.1:21301"
+    ]
+    ```
 
 `--health`
     Send a health check request to a sevice that implements the "Meta::health"
@@ -71,18 +90,23 @@ a tchannel service. It supports thrift, JSON, and raw request format.
     }
     ```
 
-`-t thrift`
-    Used with the thrift encoding to specify the path to the thrift files.
-    The thrift option value can either point to a file or a directory.
+`-t | --thrift </path/to/thrift/file>`
+    Used with the thrift encoding to specify the path to the thrift files. The
+    thrift option value can either point to a file or a directory.
     For example:
     ```
     tcurl -p 127.0.0.1:21300 serviceName Meta::health -t . -3 null
     ```
-    The above command assumes that current folder contains the meta.thrift IDL file.
+    The above command assumes that current folder contains the meta.thrift IDL
+    file. The endpoint specified at the command line should be defined in the
+    specified thrift file. Using the example immediatly above, the following
+    would be a valid request:
+    ```
+    tcurl hyperbahn Hyperbahn::DiscoveryResult --body '{ "serviceName": "ringpop" }' `--thrift ./idl/hyperbahn.thrift
 
 `--no-strict`
-    Disable the default strict mode of thrift parsing. When strict mode is enabled,
-    all fields must be specified as either "required" or "optional".
+    Disable the default strict mode of thrift parsing. When strict mode is
+    enabled, all fields must be specified as either "required" or "optional".
 
 `--raw`
     Use raw format (i.e. plain text) for request.
@@ -95,7 +119,7 @@ a tchannel service. It supports thrift, JSON, and raw request format.
     ```
 
 `--timeout value`
-    Specify the maximum time in miniseconds this request can take
+    Specify the maximum time in milliseconds this request can take
     until it timeout. 
     For example, the following command specifies a timeout value
     of one second:
@@ -106,6 +130,34 @@ a tchannel service. It supports thrift, JSON, and raw request format.
 `--shardKey`
     Ringpop only. Send ringpop shardKey transport header.
 
+`--config`
+    Path to a JSON or ini-style configuration file with values for any
+    of the configurable keys above.
+
+## Configuration (command line flags, environment variables and tcurlrc)
+
+`tcurl` supports getting its configuration from command line arguments,
+environment variables and tcurlrc files (in that order).
+
+The command line options are listed above. Environment variables should
+be prefixed with TCURL_ and the key in UPPER_SNAKE_CASE. e.g.
+    ```
+    TCURL_HOSTFILE=/path/to/hostfile.json
+    TCURL_NO_STRICT=true
+    ```
+
+After giving precedence to command line arguments and environment
+variables it will probe the following JSON or ini-style configuration
+files in order of highest precedence to lowest.
+ - a tcurlrc specified with the --config flag.
+ - a local .tcurlrc in the current working directory or the first one
+ found looking in ./ ../ ../../ ../../../ etc.
+ - $HOME/.tcurlrc
+ - $HOME/.tcurl/config
+ - $HOME/.config/tcurl
+ - $HOME/.config/tcurl/config
+ - /etc/tcurlrc
+ - /etc/tcurl/config
 
 ## EXIT CODES
  - `0: for all successful requests`
@@ -121,7 +173,6 @@ a tchannel service. It supports thrift, JSON, and raw request format.
  - `125: misc tcurl / tchannel internal error`
  - `126: response not ok error`
  - `127: fatal protocol error`
-
 
 ## BUGS
 
