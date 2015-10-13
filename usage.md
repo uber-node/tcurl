@@ -134,6 +134,13 @@ It supports Thrift, JSON, and raw request format.
     Path to a JSON or ini-style configuration file with values for any
     of the configurable keys above.
 
+`--helpUrl`
+    A url string that is printed along with usage information. This feature
+    exists for organizations using tcurl, tchannel and hyperbahn to provide a
+    URL to a help document specific to how they use tcurl. This option should
+    not be specified as a command line flag and should instead be specified
+    in a tcurlrc file.
+
 ## Configuration (command line flags, environment variables and tcurlrc)
 
 `tcurl` supports getting its configuration from command line arguments,
