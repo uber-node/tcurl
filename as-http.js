@@ -61,7 +61,8 @@ TCurlAsHttp.prototype.send = function send() {
         streamed: true,
         hasNoParent: true
     });
-    self.asHttpClient.sendRequest(req, hreq, onSent);
+    self.asHttpClient.channel = self.subChannel.topChannel;
+    self.asHttpClient.sendRequest(req, hreq, null, null, onSent);
 
     function onSent(err, head, stream, body) {
         if (err) {
