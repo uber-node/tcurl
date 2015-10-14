@@ -3,7 +3,7 @@
 \fBtcurl\fR \- curl for tchannel
 .SH SYNOPSIS
 .P
-\fBtcurl\fP <service> <endpoint> <options>
+tcurl [OPTIONS] service endpoint
 .P
 Options:
   \-h \-\-help                 Show detailed manpage
@@ -172,7 +172,7 @@ tcurl \-p 127\.0\.0\.1:8080 serviceName endpoint \-\-timeout 1000
     URL to a help document specific to how they use tcurl\. This option should
     not be specified as a command line flag and should instead be specified
     in a tcurlrc file\.
-.SH Configuration (command line flags, environment variables and tcurlrc)
+.SH CONFIGURATION
 .P
 \fBtcurl\fP supports getting its configuration from command line arguments,
 environment variables and tcurlrc files (in that order)\.
@@ -242,6 +242,18 @@ $HOME/\.config/tcurl/config
 \fB127: fatal protocol error\fP
 
 .RE
+.SH \fBlocalhost\fP caveat
+.P
+For TChannel and Hyperbahn to work together effectively, most tchannel
+services need to listen on the external IP of the host they are running
+on\.
+.P
+This means when you use \fB127\.0\.0\.1\fP you cannot reach the service with
+tcurl as it's not listening on loopback\.
+.P
+To make supporting external IPs easier we've made \fBlocalhost\fP resolve
+to the external IP of the machine\. This means if your listening on
+loopback you have to use \fB127\.0\.0\.1\fP and not \fBlocalhost\fP
 .SH BUGS
 .P
 Please report any bugs to https://github\.com/uber/tcurl
