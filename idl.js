@@ -118,7 +118,7 @@ Services.prototype.listThrifts = function listThrifts(serviceName, cb) {
         Object.keys(thrifts).forEach(function readService(filepath) {
             var thrift = thrifts[filepath];
             Object.keys(thrift.services).forEach(function readFunctions(thriftServiceName) {
-                self.functions[serviceName][thriftServiceName] = Object.keys(thrift.services[thriftServiceName]);
+                self.functions[serviceName][thriftServiceName] = Object.keys(thrift.services[thriftServiceName].functionsByName);
             });
         });
     }
