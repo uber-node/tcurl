@@ -440,7 +440,10 @@ TCurl.prototype.onResponse = function onResponse(err, res, arg2, arg3, opts, del
 
 if (require.main === module) {
     if (process.argv.slice(2)[0] === 'completion') {
-        tabtab.complete(packageJson.name, completion);
+        tabtab.complete({
+            name: packageJson.name,
+            ignoreWordbreaks: ['=', ':']
+        }, completion);
     } else {
         main(process.argv.slice(2));
     }

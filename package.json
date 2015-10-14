@@ -30,7 +30,7 @@
     "recursive-readdir": "^1.2.1",
     "run-parallel": "^1.1.4",
     "safe-json-parse": "^4.0.0",
-    "tabtab": "0.0.4",
+    "tabtab": "git+ssh://git@github.com:uber/node-tabtab.git#update",
     "tchannel": "3.5.5",
     "thriftrw": "^2.3.1",
     "traverse": "^0.6.6",
