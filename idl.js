@@ -26,6 +26,8 @@ var fs = require('fs');
 
 module.exports.Services = Services;
 
+var META_THRIFT_FILE_PATH = path.resolve(__dirname, 'meta.thrift');
+
 function Services(idlPath) {
     this.path = idlPath;
     this.services = null;
@@ -38,28 +40,32 @@ Services.prototype.list = function list(cb) {
     var self = this;
 
     recursive(this.path, function (err, files) {
-      var services = files.reduce(function acc(memo, file){
-        var parts = file.split(path.sep);
-        var filename = parts.pop();
-        var service = parts.pop();
-        if (/\.thrift$/.test(filename)) {
-            if (!memo[service]) {
-                memo[service] = [];
+        var services = files.reduce(function acc(memo, file) {
+            var parts = file.split(path.sep);
+            var filename = parts.pop();
+            var service = parts.pop();
+            if (/\.thrift$/.test(filename)) {
+                if (!memo[service]) {
+                    memo[service] = [META_THRIFT_FILE_PATH];
+                }
+
+                // Services should not publish their own meta.thrift
+                if (file.indexOf('meta.thrift') === -1) {
+                    memo[service].push(file);
+                }
             }
-            memo[service].push(file);
-        }
-        return memo;
-      }, {});
+            return memo;
+        }, {});
 
-      self.files = services;
-      self.services = Object.keys(services);
+        self.files = services
+        self.services = Object.keys(services);
 
-      self.functions = self.services.reduce(function onServiceName(memo, serviceName) {
-        memo[serviceName] = {};
-        return memo;
-      }, {});
+        self.functions = self.services.reduce(function onServiceName(memo, serviceName) {
+            memo[serviceName] = {};
+            return memo;
+        }, {});
 
-      cb(null, self.services);
+        cb(null, self.services);
     });
 }
 
