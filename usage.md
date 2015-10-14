@@ -2,7 +2,7 @@
 
 ## SYNOPSIS
 
-`tcurl` <service> <endpoint> <options>
+tcurl [OPTIONS] service endpoint
 
 Options:
   -h --help                 Show detailed manpage
@@ -141,7 +141,7 @@ It supports Thrift, JSON, and raw request format.
     not be specified as a command line flag and should instead be specified
     in a tcurlrc file.
 
-## Configuration (command line flags, environment variables and tcurlrc)
+## CONFIGURATION
 
 `tcurl` supports getting its configuration from command line arguments,
 environment variables and tcurlrc files (in that order).
@@ -180,6 +180,19 @@ files in order of highest precedence to lowest.
  - `125: misc tcurl / tchannel internal error`
  - `126: response not ok error`
  - `127: fatal protocol error`
+
+## `localhost` caveat
+
+For TChannel and Hyperbahn to work together effectively, most tchannel
+services need to listen on the external IP of the host they are running
+on.
+
+This means when you use `127.0.0.1` you cannot reach the service with
+tcurl as it's not listening on loopback.
+
+To make supporting external IPs easier we've made `localhost` resolve
+to the external IP of the machine. This means if your listening on
+loopback you have to use `127.0.0.1` and not `localhost`
 
 ## BUGS
 

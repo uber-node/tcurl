@@ -129,7 +129,7 @@ main.exec = function execMain(str, delegate) {
 };
 
 function help(helpUrl) {
-    console.log('usage: tcurl <service> <endpoint> <options>');
+    console.log('usage: tcurl [OPTIONS] service endpoint');
     console.log('');
     console.log('Options:');
     console.log('  -h --help                 Show detailed manpage');
