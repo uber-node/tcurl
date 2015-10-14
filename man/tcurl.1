@@ -28,10 +28,28 @@ It supports Thrift, JSON, and raw request format\.
 .IP \(bu 2
 \fBtcurl \-p localhost:8080 serviceName \-\-health\fP
 .IP \(bu 2
-\fBtcurl \-p 127\.0\.0\.1:21300 hyperbahn Hyperbahn::discover \-t \./hyperbahn\.thrift \-3 '{"query":{"serviceName":"ringpop"}}'\fP
-.IP \(bu 2
 \fBtcurl \-p localhost:8080 serviceName endpoint \-\-raw \-3 'message'\fP
+.IP \(bu 2
+\fBtcurl \-p 127\.0\.0\.1:21300 hyperbahn Hyperbahn::discover \-t \./hyperbahn\.thrift \-3 '{"query":{"serviceName":"ringpop"}}'\fP
 
+.RE
+.P
+The following is an example thrift file for the thrift example command above:
+.P
+.RS 2
+.nf
+```
+struct Query {
+  1: required string serviceName;
+}
+
+service Hyperbahn {
+  string discover(
+    1: required Query query;
+  )
+}
+```
+.fi
 .RE
 .SH OPTIONS
 .P

@@ -27,8 +27,22 @@ It supports Thrift, JSON, and raw request format.
 ## EXAMPLES
 
  - `tcurl -p localhost:8080 serviceName --health`
- - `tcurl -p 127.0.0.1:21300 hyperbahn Hyperbahn::discover -t ./hyperbahn.thrift -3 '{"query":{"serviceName":"ringpop"}}'`
  - `tcurl -p localhost:8080 serviceName endpoint --raw -3 'message'`
+ - `tcurl -p 127.0.0.1:21300 hyperbahn Hyperbahn::discover -t ./hyperbahn.thrift -3 '{"query":{"serviceName":"ringpop"}}'`
+
+The following is an example thrift file for the thrift example command above:
+
+    ```
+    struct Query {
+      1: required string serviceName;
+    }
+
+    service Hyperbahn {
+      string discover(
+        1: required Query query;
+      )
+    }
+    ```
 
 ## OPTIONS
 
