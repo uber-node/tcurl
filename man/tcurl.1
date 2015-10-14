@@ -1,40 +1,82 @@
-.TH "TCURL" "1" "October 2015" "v4.15.0" "tcurl"
+.TH "TCURL" "1" "October 2015" "v4.15.1" "tcurl"
 .SH "NAME"
 \fBtcurl\fR \- curl for tchannel
 .SH SYNOPSIS
 .P
-\fBtcurl\fP [\-\-help] [\-v | \-\-version] [\-H] [\-p] [\-t]
-        [\-2 | \-\-arg2 | \-\-head] [\-3 | \-\-arg3 | \-\-body]
-        [\-\-shardKey] [\-\-no\-strict] [\-\-timeout]
-        [\-\-http] [\-\-raw] [\-\-health]
+tcurl [OPTIONS] service endpoint
+.P
+Options:
+  \-h \-\-help                 Show detailed manpage
+  \-v \-\-version              Print version
+  \-H \-\-hostlist             Path to hostlist file
+  \-p \-\-peer                 IP and port of single peer
+  \-t \-\-thrift               Path to thrift IDL file
+  \-2 \-\-head <value>         Set header to <value>
+  \-3 \-\-body <value>         Set body to <value>
+     \-\-http <method>        Use HTTP <method> instead of TCP
+     \-\-health               Print health for <service>
+     \-\-raw                  Send header and body as binary diaray
+     \-\-shardKey             Send Ringpop shardKey transport header
+     \-\-no\-strict            Parse thrift IDL files loosely
+     \-\-timeout <value>      Set a timeout value in milliseconds
 .SH DESCRIPTION
 .P
-\fBtcurl\fP is a tool for constructing and sending requests to
-a tchannel service\. It supports thrift, JSON, and raw request format\.
+\fBtcurl\fP is a tool for constructing and sending requests to a tchannel service\.
+It supports Thrift, JSON, and raw request format\.
 .SH EXAMPLES
 .RS 0
 .IP \(bu 2
 \fBtcurl \-p localhost:8080 serviceName \-\-health\fP
 .IP \(bu 2
-\fBtcurl \-p 127\.0\.0\.1:21300 hyperbahn Hyperbahn::discover \-t \./hyperbahn\.thrift \-3 '{"query":{"serviceName":"ringpop"}}'\fP
-.IP \(bu 2
 \fBtcurl \-p localhost:8080 serviceName endpoint \-\-raw \-3 'message'\fP
+.IP \(bu 2
+\fBtcurl \-p 127\.0\.0\.1:21300 hyperbahn Hyperbahn::discover \-t \./hyperbahn\.thrift \-3 '{"query":{"serviceName":"ringpop"}}'\fP
 
+.RE
+.P
+The following is an example thrift file for the thrift example command above:
+.P
+.RS 2
+.nf
+```
+struct Query {
+  1: required string serviceName;
+}
+
+service Hyperbahn {
+  string discover(
+    1: required Query query;
+  )
+}
+```
+.fi
 .RE
 .SH OPTIONS
 .P
 \fB\-v | \-\-version\fP
     Print the current version\.
 .P
-\fB\-p host:port serviceName [endpoint]\fP
-    Specify the destination where the request should be sent to
-    including the host, the port, the serviceName, and the endpoint\.
-    When used with \-\-health, endpoint is not required\.
+\fB\-p | \-\-peer host:port serviceName <endpoint>\fP
+    Specify the destination where the request should be sent to including the
+    host, the port, the serviceName, and the endpoint\. When used with \-\-health,
+    endpoint is not required\.
 .P
-\fB\-H host\-file serviceName [endpoint]\fP
+\fB\-H | \-\-hostfile </path/to/hostfile> <serviceName> <endpoint>\fP
     Similar to the \fB\-p\fP option\. Instead of the host:port, it takes a host\-file
     that contains a list of host:port where this request can be sent to\.
-    TChannel will only pick one host:port to send the request to\.
+    TChannel will only pick one host:port to send the request to\. An example
+    hostfile with two hyperbahn hosts:
+.P
+.RS 2
+.nf
+```
+[
+    "127\.0\.0\.1:21300",
+    "127\.0\.0\.1:21301"
+]
+```
+.fi
+.RE
 .P
 \fB\-\-health\fP
     Send a health check request to a sevice that implements the "Meta::health"
@@ -83,9 +125,9 @@ service Hyperbahn {
 .fi
 .RE
 .P
-\fB\-t thrift\fP
-    Used with the thrift encoding to specify the path to the thrift files\.
-    The thrift option value can either point to a file or a directory\.
+\fB\-t | \-\-thrift </path/to/thrift/file>\fP
+    Used with the thrift encoding to specify the path to the thrift files\. The
+    thrift option value can either point to a file or a directory\.
     For example:
 .P
 .RS 2
@@ -93,13 +135,18 @@ service Hyperbahn {
 ```
 tcurl \-p 127\.0\.0\.1:21300 serviceName Meta::health \-t \. \-3 null
 ```
-The above command assumes that current folder contains the meta\.thrift IDL file\.
+The above command assumes that current folder contains the meta\.thrift IDL
+file\. The endpoint specified at the command line should be defined in the
+specified thrift file\. Using the example immediatly above, the following
+would be a valid request:
+```
+tcurl hyperbahn Hyperbahn::DiscoveryResult \-\-body '{ "serviceName": "ringpop" }' `\-\-thrift \./idl/hyperbahn\.thrift
 .fi
 .RE
 .P
 \fB\-\-no\-strict\fP
-    Disable the default strict mode of thrift parsing\. When strict mode is enabled,
-    all fields must be specified as either "required" or "optional"\.
+    Disable the default strict mode of thrift parsing\. When strict mode is
+    enabled, all fields must be specified as either "required" or "optional"\.
 .P
 \fB\-\-raw\fP
     Use raw format (i\.e\. plain text) for request\.
@@ -117,7 +164,7 @@ tcurl \-p 127\.0\.0\.1:21300 echoServer '/echo' \-\-http 'POST' \-\-head '{"Acce
 .RE
 .P
 \fB\-\-timeout value\fP
-    Specify the maximum time in miniseconds this request can take
+    Specify the maximum time in milliseconds this request can take
     until it timeout\. 
     For example, the following command specifies a timeout value
     of one second:
@@ -132,6 +179,57 @@ tcurl \-p 127\.0\.0\.1:8080 serviceName endpoint \-\-timeout 1000
 .P
 \fB\-\-shardKey\fP
     Ringpop only\. Send ringpop shardKey transport header\.
+.P
+\fB\-\-config\fP
+    Path to a JSON or ini\-style configuration file with values for any
+    of the configurable keys above\.
+.P
+\fB\-\-helpUrl\fP
+    A url string that is printed along with usage information\. This feature
+    exists for organizations using tcurl, tchannel and hyperbahn to provide a
+    URL to a help document specific to how they use tcurl\. This option should
+    not be specified as a command line flag and should instead be specified
+    in a tcurlrc file\.
+.SH CONFIGURATION
+.P
+\fBtcurl\fP supports getting its configuration from command line arguments,
+environment variables and tcurlrc files (in that order)\.
+.P
+The command line options are listed above\. Environment variables should
+be prefixed with TCURL_ and the key in UPPER_SNAKE_CASE\. e\.g\.
+.P
+.RS 2
+.nf
+```
+TCURL_HOSTFILE=/path/to/hostfile\.json
+TCURL_NO_STRICT=true
+```
+.fi
+.RE
+.P
+After giving precedence to command line arguments and environment
+variables it will probe the following JSON or ini\-style configuration
+files in order of highest precedence to lowest\.
+.RS 0
+.IP \(bu 2
+a tcurlrc specified with the \-\-config flag\.
+.IP \(bu 2
+a local \.tcurlrc in the current working directory or the first one
+found looking in \./ \.\./ \.\./\.\./ \.\./\.\./\.\./ etc\.
+.IP \(bu 2
+$HOME/\.tcurlrc
+.IP \(bu 2
+$HOME/\.tcurl/config
+.IP \(bu 2
+$HOME/\.config/tcurl
+.IP \(bu 2
+$HOME/\.config/tcurl/config
+.IP \(bu 2
+/etc/tcurlrc
+.IP \(bu 2
+/etc/tcurl/config
+
+.RE
 .SH EXIT CODES
 .RS 0
 .IP \(bu 2
@@ -162,6 +260,18 @@ tcurl \-p 127\.0\.0\.1:8080 serviceName endpoint \-\-timeout 1000
 \fB127: fatal protocol error\fP
 
 .RE
+.SH \fBlocalhost\fP caveat
+.P
+For TChannel and Hyperbahn to work together effectively, most tchannel
+services need to listen on the external IP of the host they are running
+on\.
+.P
+This means when you use \fB127\.0\.0\.1\fP you cannot reach the service with
+tcurl as it's not listening on loopback\.
+.P
+To make supporting external IPs easier we've made \fBlocalhost\fP resolve
+to the external IP of the machine\. This means if your listening on
+loopback you have to use \fB127\.0\.0\.1\fP and not \fBlocalhost\fP
 .SH BUGS
 .P
 Please report any bugs to https://github\.com/uber/tcurl

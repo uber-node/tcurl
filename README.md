@@ -11,90 +11,36 @@
 A command line utility to talk to a tchannel server.
 
 ```
-tcurl [-H <hostlist> | -p host:port] <service> <endpoint> [options]
+usage: tcurl [OPTIONS] service endpoint
 
-  Version: 4.14.0
-
-  Options:
-    --head (-2) [data] JSON or raw
-    --body (-3) [data] JSON or raw
-      (JSON promoted to Thrift via IDL when applicable)
-    --shardKey send ringpop shardKey transport header
-    --depth=n configure inspect printing depth
-    --thrift (-t) [dir] directory containing Thrift files
-    --no-strict parse Thrift loosely
-    --json (-j) Use JSON argument scheme
-      (default unless endpoint has ::)
-    --http method
-    --raw encode arg2 & arg3 raw
-    --health
-    --timeout [num]
+Options:
+  -h --help                 Show detailed manpage
+  -v --version              Print version
+  -H --hostlist             Path to hostlist file
+  -p --peer                 IP and port of single peer
+  -t --thrift               Path to thrift IDL file
+  -2 --head <value>         Set header to <value>
+  -3 --body <value>         Set body to <value>
+     --http <method>        Use HTTP <method> instead of TCP
+     --health               Print health for <service>
+     --raw                  Send header and body as binary diaray
+     --shardKey             Send Ringpop shardKey transport header
+     --no-strict            Parse thrift IDL files loosely
+     --timeout <value>      Set a timeout value in milliseconds
 ```
 
 [Click here for full usage docs.](usage.md)
 
 ## Installation
 
-`npm install tcurl`
-
-## Examples
-
-### Thrift
-
-For the purposes of these examples, let's assume that you have a TChannel
-server listening on `localhost:1234`. The server registers handlers for the
-thrift interface saved as `services/chamber.thrift` and defined as:
-
-```thrift
-struct EchoRequest {
-  1: required string input;
-}
-
-service Chamber {
-  string echo(
-    1: required EchoRequest request;
-  )
-}
-```
-
-You could use TCurl to query this service by running:
-
-```
-tcurl -p localhost:1234 chamber Chamber::echo -t ./services -3 '{"request": {"input": "foo"}}'
-```
-
-## `localhost` caveat
-
-For TChannel and Hyperbahn to work together effectively, most tchannel services need to listen on the
-external IP of the host they are running on.
-
-This means when you use `127.0.0.1` you cannot reach the service with tcurl as it's not listening on
-loopback.
-
-To make supporting external IPs easier we've made `localhost` resolve to the external IP of the machine.
-This means if your listening on loopback you have to use `127.0.0.1` and not `localhost`
-
-## Exit Codes
-
- - 0: for all successful requests
- - 1: timeout
- - 2: cancelled
- - 3: busy
- - 4: declined
- - 5: unexpected error
- - 6: bad request
- - 7: network error
- - 8: unhealthy (broken circuit)
- - 124: unhealthy / not OK thrift response
- - 125: misc tcurl / tchannel internal error
- - 126: response not ok error
- - 127: fatal protocol error
+`npm install tcurl --global`
 
 ## NPM scripts
 
  - `npm run add-licence` This will add the licence headers.
  - `npm run cover` This runs the tests with code coverage
  - `npm run lint` This will run the linter on your code
+ - `npm run man` This will build the manpage. 
  - `npm test` This will run the tests.
  - `npm run trace` This will run your tests in tracing mode.
  - `npm run travis` This is run by travis.CI to run your tests
@@ -105,6 +51,7 @@ This means if your listening on loopback you have to use `127.0.0.1` and not `lo
  - Raynos
  - ShanniLi
  - kriskowal
+ - malandrew
 
 ## MIT Licenced
 
