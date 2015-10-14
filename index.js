@@ -50,7 +50,6 @@ var safeJsonParse = require('safe-json-parse/tuple');
 
 var Logger = require('./logger');
 var HealthLogger = require('./health-logger');
-var TCurlAsHttp = require('./as-http');
 
 var packageJson = require('./package.json');
 
@@ -132,7 +131,7 @@ function help() {
     console.log('usage: tcurl [--help] [-v | --version] [-H] [-p] [-t]');
     console.log('             [-2 | --arg2 | --head] [-3 | --arg3 | --body]');
     console.log('             [--shardKey] [--no-strict]  [--timeout]');
-    console.log('             [--http] [--raw] [--health]');
+    console.log('             [--raw] [--health]');
 }
 
 function printFullHelp() {
@@ -178,8 +177,6 @@ function parseArgs(argv) {
     var argScheme;
     if (argv.raw) {
         argScheme = 'raw';
-    } else if (argv.http) {
-        argScheme = 'http';
     } else if (argv.json) {
         argScheme = 'json';
     } else if (argv.thrift || health || endpoint.indexOf('::') >= 0) {
@@ -198,7 +195,6 @@ function parseArgs(argv) {
         argScheme: argScheme,
         thrift: argv.thrift,
         strict: argv.strict,
-        http: argv.http,
         raw: argv.raw,
         timeout: argv.timeout,
         health: health
@@ -317,8 +313,6 @@ TCurl.prototype.request = function tcurlRequest(opts, delegate) {
 
         if (opts.argScheme === 'thrift') {
             self.asThrift(opts, request, delegate, done);
-        } else if (opts.argScheme === 'http') {
-            self.asHTTP(opts, client, subChan, delegate, done);
         } else if (opts.argScheme === 'json') {
             self.asJSON(opts, request, delegate, done);
             // TODO fix argument order for each of these
@@ -391,20 +385,6 @@ TCurl.prototype.asRaw = function asRaw(opts, request, delegate, done) {
         done();
         self.onResponse(err, res, arg2, arg3, opts, delegate);
     }
-};
-
-TCurl.prototype.asHTTP = function asHTTP(opts, client, subChan, delegate, done) {
-    var asHttp = TCurlAsHttp({
-        channel: client,
-        subChannel: subChan,
-        method: opts.http,
-        endpoint: opts.endpoint,
-        headers: opts.head,
-        body: opts.body,
-        done: done,
-        logger: delegate
-    });
-    asHttp.send();
 };
 
 TCurl.prototype.asJSON = function asJSON(opts, request, delegate, done) {
