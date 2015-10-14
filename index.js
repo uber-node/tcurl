@@ -36,6 +36,8 @@ var rcUtils = require('rc/lib/utils');
 var camelCaseKeys = require('camelcase-keys');
 var traverse = require('traverse');
 var extend = require('xtend');
+var completion = require('./completion');
+var tabtab = require('tabtab');
 
 var fmt = require('util').format;
 var console = require('console');
@@ -437,5 +439,9 @@ TCurl.prototype.onResponse = function onResponse(err, res, arg2, arg3, opts, del
 };
 
 if (require.main === module) {
-    main(process.argv.slice(2));
+    if (process.argv.slice(2)[0] === 'completion') {
+        tabtab.complete(packageJson.name, completion);
+    } else {
+        main(process.argv.slice(2));
+    }
 }
