@@ -29,7 +29,6 @@ var TChannel = require('tchannel');
 var TChannelAsThrift = require('tchannel/as/thrift');
 var TChannelAsJSON = require('tchannel/as/json');
 var minimist = require('minimist');
-var myLocalIp = require('my-local-ip');
 var DebugLogtron = require('debug-logtron');
 var rc = require('rc');
 var rcUtils = require('rc/lib/utils');
@@ -43,7 +42,6 @@ var process = require('process');
 var spawn = require('child_process').spawn;
 var fs = require('fs');
 var path = require('path');
-var url = require('url');
 var assert = require('assert');
 
 var safeJsonParse = require('safe-json-parse/tuple');
@@ -155,22 +153,6 @@ function parseArgs(argv) {
     // Prefer peer specified at the command line over hostlist
     var peers = argv.peer || !argv.hostlist ?
         [argv.peer] : JSON.parse(fs.readFileSync(argv.hostlist));
-
-    var ip;
-    function normalizePeer(address) {
-        if (!ip) {
-            ip = myLocalIp();
-        }
-        var parsedUri = url.parse('tchannel://' + address);
-        if (parsedUri.hostname === 'localhost') {
-            parsedUri.hostname = ip;
-        }
-        assert(parsedUri.hostname, 'host required');
-        assert(parsedUri.port, 'port required');
-        return parsedUri.hostname + ':' + parsedUri.port;
-    }
-
-    peers = peers.map(normalizePeer);
 
     assert(health || endpoint, 'endpoint required');
     assert(service, 'service required');
@@ -297,6 +279,7 @@ TCurl.prototype.request = function tcurlRequest(opts, delegate) {
     });
 
     var peer = subChan.peers.choosePeer();
+    assert(peer, 'peer required');
     // TODO: the host option should be called peer, hostPort, or address
     client.waitForIdentified({host: peer.hostPort}, onIdentified);
 

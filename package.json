@@ -23,7 +23,6 @@
     "camelcase-keys": "^1.0.0",
     "debug-logtron": "^3.2.0",
     "minimist": "^1.1.1",
-    "my-local-ip": "^1.0.0",
     "process": "^0.11.0",
     "rc": "^1.1.2",
     "readable-stream": "^1.0.33",
