@@ -1,3 +1,5 @@
+#!/usr/bin/env node
+
 // Copyright (c) 2015 Uber Technologies, Inc.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -17,12 +19,53 @@
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
-
 'use strict';
 
-require('./tcurl.js');
-require('./as-thrift.js');
-require('./as-json.js');
-require('./as-http.js');
-require('./health.js');
-require('./benchmark.js');
+module.exports = BenchmarkLogger;
+
+function BenchmarkLogger() {
+    var self = this;
+    self.errors = [];
+    self.responses = [];
+}
+
+BenchmarkLogger.prototype.log = function log(message) {
+    var self = this;
+    if (self.logger) {
+        self.logger.log(message);
+    }
+};
+
+BenchmarkLogger.prototype.error = function error(err) {
+    var self = this;
+    if (self.logger) {
+        self.logger.error(err);
+    }
+};
+
+BenchmarkLogger.prototype.response = function response(res, opts) {
+    var self = this;
+    if (self.logger) {
+        self.logger.response(res, opts);
+    }
+};
+
+BenchmarkLogger.prototype.handleReponse = function handleReponse(err, res) {
+    var self = this;
+    if (err) {
+        self.errors.push(err);
+    }
+
+    if (res) {
+        self.responses.push(res);
+    }
+
+    if (self.count === self.errors.length + self.responses.length) {
+        self.collect(self.errors, self.responses);
+        self.errors = [];
+        self.responses = [];
+    }
+};
+
+BenchmarkLogger.prototype.exit = function exit() {
+};
