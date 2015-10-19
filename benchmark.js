@@ -42,10 +42,12 @@ function Benchmark(options) {
     self.requests = options.cmdOptions.requests || 0;
     self.requestsLimit = self.requests !== 0;
     self.time = options.cmdOptions.time;
-    if (self.requests === 0 && self.time === undefined) {
-        self.time = 30 * 1000;
-    } else {
+
+    if (self.time === undefined) {
         self.time = 0;
+        if (self.requests === 0) {
+            self.time = 30 * 1000;
+        }
     }
 
     self.timeLimit = self.time !== 0;
