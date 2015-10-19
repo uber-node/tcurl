@@ -41,7 +41,13 @@ function Benchmark(options) {
     self.cmdOptions = options.cmdOptions;
     self.requests = options.cmdOptions.requests || 0;
     self.requestsLimit = self.requests !== 0;
-    self.time = options.cmdOptions.time || 0;
+    self.time = options.cmdOptions.time;
+    if (self.requests === 0 && self.time === undefined) {
+        self.time = 30 * 1000;
+    } else {
+        self.time = 0;
+    }
+
     self.timeLimit = self.time !== 0;
     self.delay = options.cmdOptions.delay || 100;
     self.rate = options.cmdOptions.rate;

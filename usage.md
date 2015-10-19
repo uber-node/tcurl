@@ -129,7 +129,8 @@ a tchannel service. It supports thrift, JSON, and raw request format.
 
 `--time value`
     Specify the time in milliseconds how long the benchmark should run.
-    By default, there is no limit on the time length.
+    When no request limit is set, the default value is 30 seconds. Otherwise,
+    the default is unlimited.
 
 
 ## EXIT CODES

@@ -166,7 +166,8 @@ tcurl \-p localhost:8080 serviceName \-\-health \-\-rate 1000 \-\-delay 100
 .P
 \fB\-\-time value\fP
     Specify the time in milliseconds how long the benchmark should run\.
-    By default, there is no limit on the time length\.
+    When no request limit is set, the default value is 30 seconds\. Otherwise,
+    the default is unlimited\.
 .SH EXIT CODES
 .RS 0
 .IP \(bu 2

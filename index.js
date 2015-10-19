@@ -224,6 +224,13 @@ function parseArgs(argv) {
 }
 
 function TCurl(opts) {
+    if (!(this instanceof TCurl)) {
+        return new TCurl(opts);
+    }
+
+    var self = this;
+    self.subChannel = null;
+    self.client = null;
 }
 
 TCurl.prototype.parseJsonArgs = function parseJsonArgs(opts, delegate) {
