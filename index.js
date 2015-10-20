@@ -49,6 +49,7 @@ var assert = require('assert');
 var safeJsonParse = require('safe-json-parse/tuple');
 
 var Logger = require('./logger');
+var Benchmark = require('./benchmark');
 var HealthLogger = require('./health-logger');
 var TCurlAsHttp = require('./as-http');
 
@@ -110,6 +111,18 @@ function main(argv, delegate) {
         delegate = delegate || new Logger();
     }
 
+    if (opts.rate) {
+        var benchmark = new Benchmark({
+            tcurl: tcurl,
+            cmdOptions: opts,
+            logger: delegate
+        });
+        return benchmark.run(function done() {
+            tcurl.client.close();
+            delegate.exit();
+        });
+    }
+
     return tcurl.request(opts, delegate);
 }
 
@@ -133,6 +146,7 @@ function help() {
     console.log('             [-2 | --arg2 | --head] [-3 | --arg3 | --body]');
     console.log('             [--shardKey] [--no-strict]  [--timeout]');
     console.log('             [--http] [--raw] [--health]');
+    console.log('             [--rate] [--requests] [--time] [--delay]');
 }
 
 function printFullHelp() {
@@ -201,11 +215,22 @@ function parseArgs(argv) {
         http: argv.http,
         raw: argv.raw,
         timeout: argv.timeout,
-        health: health
+        health: health,
+        time: argv.time,
+        requests: argv.requests,
+        delay: argv.delay,
+        rate: argv.rate
     };
 }
 
 function TCurl(opts) {
+    if (!(this instanceof TCurl)) {
+        return new TCurl(opts);
+    }
+
+    var self = this;
+    self.subChannel = null;
+    self.client = null;
 }
 
 TCurl.prototype.parseJsonArgs = function parseJsonArgs(opts, delegate) {
@@ -272,7 +297,7 @@ TCurl.prototype.readThriftDir = function readThriftDir(opts, delegate) {
     return sources[opts.service];
 };
 
-TCurl.prototype.request = function tcurlRequest(opts, delegate) {
+TCurl.prototype.prepare = function prepare(opts, delegate, callback) {
     var self = this;
 
     // May report errors for arg2, arg3, or both
@@ -281,11 +306,11 @@ TCurl.prototype.request = function tcurlRequest(opts, delegate) {
         return delegate.exit();
     }
 
-    var client = TChannel({
+    self.client = TChannel({
         logger: DebugLogtron('tcurl')
     });
 
-    var subChan = client.makeSubChannel({
+    self.subChannel = self.client.makeSubChannel({
         serviceName: opts.service,
         peers: opts.peers,
         requestDefaults: {
@@ -296,9 +321,9 @@ TCurl.prototype.request = function tcurlRequest(opts, delegate) {
         }
     });
 
-    var peer = subChan.peers.choosePeer();
+    var peer = self.subChannel.peers.choosePeer();
     // TODO: the host option should be called peer, hostPort, or address
-    client.waitForIdentified({host: peer.hostPort}, onIdentified);
+    self.client.waitForIdentified({host: peer.hostPort}, onIdentified);
 
     function onIdentified(err) {
         if (err) {
@@ -306,29 +331,51 @@ TCurl.prototype.request = function tcurlRequest(opts, delegate) {
             return delegate.exit();
         }
 
-        var headers = opts.shardKey ? {sk: opts.shardKey} : {};
+        callback();
+    }
+};
 
-        var request = subChan.request({
-            timeout: opts.timeout || 100,
-            hasNoParent: true,
-            serviceName: opts.service,
-            headers: headers
-        });
+TCurl.prototype.createRequest = function createRequest(opts) {
+    var self = this;
+    var headers = opts.shardKey ? {sk: opts.shardKey} : {};
+    return self.subChannel.request({
+        timeout: opts.timeout || 100,
+        hasNoParent: true,
+        serviceName: opts.service,
+        headers: headers
+    });
+};
 
-        if (opts.argScheme === 'thrift') {
-            self.asThrift(opts, request, delegate, done);
-        } else if (opts.argScheme === 'http') {
-            self.asHTTP(opts, client, subChan, delegate, done);
-        } else if (opts.argScheme === 'json') {
-            self.asJSON(opts, request, delegate, done);
-            // TODO fix argument order for each of these
-        } else {
-            self.asRaw(opts, request, delegate, done);
-        }
+TCurl.prototype.send = function send(opts, request, delegate) {
+    var self = this;
+
+    if (opts.argScheme === 'thrift') {
+        self.asThrift(opts, request, delegate, done);
+    } else if (opts.argScheme === 'http') {
+        self.asHTTP(opts, self.client, self.subChannel, delegate, done);
+    } else if (opts.argScheme === 'json') {
+        self.asJSON(opts, request, delegate, done);
+        // TODO fix argument order for each of these
+    } else {
+        self.asRaw(opts, request, delegate, done);
     }
 
     function done() {
-        client.quit();
+        if (!opts.rate) {
+            self.client.close();
+        }
+    }
+};
+
+TCurl.prototype.request = function tcurlRequest(opts, delegate) {
+    var self = this;
+    self.prepare(opts, delegate, onReady);
+
+    function onReady() {
+        self.send(opts,
+            self.createRequest(opts),
+            delegate
+        );
     }
 };
 
@@ -420,6 +467,10 @@ TCurl.prototype.asJSON = function asJSON(opts, request, delegate, done) {
 };
 
 TCurl.prototype.onResponse = function onResponse(err, res, arg2, arg3, opts, delegate) {
+    if (typeof delegate.handleReponse === 'function') {
+        delegate.handleReponse(err, res, arg2, arg3, opts);
+    }
+
     if (err) {
         delegate.error(err);
         return delegate.exit();

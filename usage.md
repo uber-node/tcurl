@@ -6,6 +6,7 @@
         [-2 | --arg2 | --head] [-3 | --arg3 | --body]
         [--shardKey] [--no-strict] [--timeout]
         [--http] [--raw] [--health]
+        [--rate] [--requests] [--time] [--delay]
 
 ## DESCRIPTION
 
@@ -103,8 +104,33 @@ a tchannel service. It supports thrift, JSON, and raw request format.
     tcurl -p 127.0.0.1:8080 serviceName endpoint --timeout 1000 
     ```
 
-`--shardKey`
-    Ringpop only. Send ringpop shardKey transport header.
+`--rate value`
+    This option is required in order to use the benchmark mode,
+    where the same request is sent multiple times to the server.
+    It specifies the number of requests sent at each batch.
+    For example, the following command sends health check requests to a
+    service at the rate of 1000, i.e., send 1000 requests and wait
+    until the requests all complete before sending the next 1000.
+    ```
+    tcurl -p localhost:8080 serviceName --health --rate 1000 
+    ```
+
+`--delay value`
+    Specify the time in milliseconds it should delay between each batch.
+    For example, the following command delays 100ms between each batch send.
+    ```
+    tcurl -p localhost:8080 serviceName --health --rate 1000 --delay 100
+    ```
+
+`--requests value`
+    Specify the total number of requests that can be sent in
+    benchmark mode. By default, there is no limit on the number of
+    requests that can be sent.
+
+`--time value`
+    Specify the time in milliseconds how long the benchmark should run.
+    When no request limit is set, the default value is 30 seconds. Otherwise,
+    the default is unlimited.
 
 
 ## EXIT CODES
