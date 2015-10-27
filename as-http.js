@@ -23,6 +23,8 @@
 'use strict';
 var PassThrough = require('readable-stream').PassThrough;
 var TChannelAsHTTP = require('tchannel/as/http');
+var Transform = require('stream').Transform;
+var util = require('util');
 
 module.exports = TCurlAsHttp;
 
@@ -57,38 +59,55 @@ TCurlAsHttp.prototype.send = function send() {
     hreq.method = self.method;
     hreq.headers = self.headers;
 
-    var req = self.subChannel.request({
-        streamed: true,
-        hasNoParent: true
-    });
-    self.asHttpClient.channel = self.subChannel.topChannel;
-    self.asHttpClient.sendRequest(req, hreq, null, null, onSent);
-
-    function onSent(err, head, stream, body) {
+    var hres = new HTTPResponse();
+    self.asHttpClient.forwardToTChannel(self.subChannel, hreq, hres, {streamed: true}, onComplete);
+    function onComplete(err) {
         if (err) {
             self.done();
             self.logger.error(err);
             return self.logger.exit();
         }
+        self.done();
+        self.logger.log(hres.statusCode);
+        self.logger.response(hres.body);
+        self.logger.exit();
+    }
+};
 
-        self.logger.log(head.statusCode);
+function HTTPResponse() {
+    var self = this;
+    Transform.call(self);
 
-        if (body) {
-            onBodyEnd();
-        } else {
-            body = '';
-            stream.on('data', onData);
-            stream.on('end', onBodyEnd);
-        }
+    self.statusCode = 200;
+    self.body = '';
+    self.headers = {};
+}
 
-        function onData(chunk) {
-            body += chunk;
-        }
+util.inherits(HTTPResponse, Transform);
 
-        function onBodyEnd() {
-            self.done();
-            self.logger.response(body);
-            self.logger.exit();
+HTTPResponse.prototype._transform = function _transform(chunk, encoding, next) {
+    var self = this;
+    self.push(chunk);
+    self.body += chunk;
+    next();
+};
+
+HTTPResponse.prototype.setHeader = function setHeader(name, value) {
+    var self = this;
+    self.headers[name.toLowerCase()] = value;
+};
+
+HTTPResponse.prototype.writeHead = function writeHead(statusCode, message, headers) {
+    var self = this;
+    if (headers === undefined && typeof message === 'object') {
+        headers = message;
+    }
+    self.statusCode = statusCode;
+    if (headers) {
+        for (var name in headers) {
+            if (headers.hasOwnProperty(name)) {
+                self.setHeader(name, headers[name]);
+            }
         }
     }
 };
