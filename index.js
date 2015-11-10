@@ -263,6 +263,11 @@ TCurl.prototype.parseJsonArgs = function parseJsonArgs(opts, delegate) {
 
 TCurl.prototype.readThrift = function readThrift(opts, delegate) {
     var self = this;
+    if (opts.thrift === null) {
+        delegate.error('Must specify a thrift file with -t|--thrift for Thrift endpoints');
+        delegate.error('or specify --json for JSON endpoints that contain ::');
+        return null;
+    }
     try {
         return fs.readFileSync(opts.thrift, 'utf8');
     } catch (err) {
