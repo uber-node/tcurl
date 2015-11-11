@@ -51,7 +51,8 @@ Logger.prototype.error = function error(err) {
         console.error(err.name + ': ' + err.message);
 
         if (err.message.lastIndexOf('no peer available', 0) === 0) {
-            console.error('This likely means that the service you are trying to reach is not advertising to Hyperbahn.');
+            console.error('This likely means that the service you are trying to reach ' +
+                'is not advertising to Hyperbahn.');
         }
 
         console.log(JSON.stringify({
