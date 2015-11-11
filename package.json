@@ -34,16 +34,15 @@
   },
   "devDependencies": {
     "coveralls": "^2.10.0",
+    "eslint": "^1.9.0",
     "format-stack": "4.0.0",
     "istanbul": "^0.3.5",
     "itape": "^1.5.0",
-    "lint-trap": "^1.0.0",
     "marked-man": "^0.1.5",
     "opn": "^1.0.1",
     "ready-signal": "^1.2.0",
     "tape": "^3.4.0",
-    "uber-licence": "1.5.1",
-    "uber-standard": "3.6.4"
+    "uber-licence": "1.5.1"
   },
   "licenses": [
     {
@@ -57,7 +56,7 @@
     "check-licence": "uber-licence --dry",
     "check-ls": "npm ls",
     "cover": "npm run test-cover -s && npm run check-cover -s",
-    "lint": "standard -v",
+    "lint": "eslint .",
     "test": "npm run check-ls -s && npm run lint -s && npm run man && npm run cover -s",
     "test-cover": "istanbul cover --report html --print detail -- test/index.js",
     "trace": "itape test/index.js --trace",
