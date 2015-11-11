@@ -403,15 +403,13 @@ TCurl.prototype.asThrift = function asThrift(opts, request, delegate, done) {
             // errors are annotated with the source file name.
             delegate.error(opts.thrift + ':' + err.line + ':' + err.column + ': Thrift Syntax Error');
             delegate.error(err.message);
-            done();
-            return delegate.exit();
         } else {
             delegate.error('Error parsing Thrift IDL');
             delegate.error(err);
             delegate.error('Consider using --no-strict to bypass mandatory optional/required fields');
-            done();
-            return delegate.exit();
         }
+        done();
+        return delegate.exit();
     }
 
     // The following is a hack to produce a nice error message when
@@ -426,14 +424,12 @@ TCurl.prototype.asThrift = function asThrift(opts, request, delegate, done) {
         // TODO untangle this mess
         if (err.message === fmt('type %s_args not found', opts.endpoint)) {
             delegate.error(fmt('%s endpoint does not exist', opts.endpoint));
-            done();
-            return delegate.exit();
         } else {
             delegate.error('Error response received for the as-thrift request.');
             delegate.error(err);
-            done();
-            return delegate.exit();
         }
+        done();
+        return delegate.exit();
     }
 
     function onResponse(err, res, arg2, arg3) {
