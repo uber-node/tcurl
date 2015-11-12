@@ -21,54 +21,113 @@
 // THE SOFTWARE.
 'use strict';
 
-// trivial tchannel listener interface, a la netcat
+/*eslint no-console: 0 */
+// tchannel listener interface, a la netcat
 
 var console = require('console');
 var process = require('process');
+var ChildProcess = require('child_process');
 
-var minimist = require('minimist');
 var TChannel = require('tchannel');
 
+var Command = require('shon/command');
+var command = new Command('tcat', {
+    peer: '[-p|--peer] <peer> The host:port pair to listen on',
+    // hyperbahn: '[-H|--hyperbahn <hostlist>] Hyperbahn host list to advertise',
+    // thrift: '[-t|--thrift] <file or dir> File or directory with Thrift IDL files',
+    // interactive: '[-i|--interactive] Use interactive stream mode',
+    service: '<service>',
+    endpoint: '<endpoint>',
+    command: '[<command>]',
+    args: '<arg>....',
+    help: '[-h|--help]*'
+});
+
+command.peer.converter = function convertAddress(peer, logger) {
+    var index = peer.lastIndexOf(':');
+    if (index < 0) {
+        logger.error('Expected colon in host:port pair for peer');
+        return null;
+    }
+    var host = peer.slice(0, index);
+    var port = +peer.slice(index + 1);
+    if (port !== port) {
+        logger.error('Expected a numeric port in host:port for peer');
+        return null;
+    }
+    return {host: host, port: port};
+};
+
 function main(args) {
-    /*eslint no-console: 0 */
-    var opts = minimist(args, {alias: {peer: ['p'], help: ['h']}});
-    if (opts.help || opts.h) {
-        displayHelp(0);
-    }
-
-    args = opts._.slice(2);
-    if (args.length !== 2 || !opts.peer) {
-        console.error('Must specify full endpoint.\n');
-        displayHelp(1);
-    }
-
-    var host = opts.peer.split(':')[0];
-    var port = opts.peer.split(':')[1];
-    var service = args[0];
-    var endpoint = args[1];
-
-    if (!host || !port) {
-        console.error('Invalid HostPort.\n');
-        displayHelp(1);
+    var config = command.exec();
+    if (config === 'help') {
+        command._logUsage();
+        return;
     }
 
     var server = new TChannel();
     server
-        .makeSubChannel({serviceName: service})
-        .register(endpoint, onRequest);
-    server.listen(+port, host);
+        .makeSubChannel({serviceName: config.service})
+        .register(config.endpoint, onRequest);
+    server.listen(config.peer.port, config.peer.host, onListening);
+
+    function onListening() {
+        console.log(JSON.stringify({message: 'listening', address: server.hostPort}));
+    }
 
     function onRequest(req, res, arg2, arg3) {
-        res.headers.as = 'raw';
-        console.log(arg2.toString());
-        res.sendOk();
+        console.log(JSON.stringify(req.extendLogInfo({message: 'request'})));
+        // TODO env inferred from arg2, argscheme dependent
+        var child = ChildProcess.spawn(config.command || 'cat', config.args, {
+            stdio: ['pipe', 'pipe', process.stderr]
+        });
+        child.stdio[0].end(arg3);
+        readString(child.stdio[1], onOutput);
+
+        function onOutput(err, arg3Res) {
+            if (err) {
+                res.sendError(err);
+                return;
+            }
+            console.log(JSON.stringify(req.extendLogInfo({message: 'response', arg2: arg2.toString('utf-8'), arg3: arg3Res})));
+            res.headers.as = req.headers.as;
+            res.sendOk(arg2, arg3Res);
+        }
     }
 }
 
-function displayHelp(exitValue) {
-    /*eslint no-process-exit: 0*/
-    console.log('tcat -p <host:port> <service> <endpoint>');
-    process.exit(exitValue);
+function readString(stream, callback) {
+    stream.setEncoding('utf-8');
+    stream.on('data', onData);
+    stream.on('end', onEnd);
+    stream.on('eerror', onError);
+    var done = false;
+    var all = '';
+    function onData(data) {
+        all += data;
+    }
+    function onEnd() {
+        if (done) {
+            return;
+        }
+        done = true;
+        callback(null, all);
+    }
+    function onError(err) {
+        if (done) {
+            return;
+        }
+        done = true;
+        callback(err);
+    }
+    function cancel() {
+        stream.removeListener('data', onData);
+        stream.removeListener('end', onEnd);
+        stream.removeListener('error', onError);
+        done = true;
+        stream = null;
+    }
+    return {cancel: cancel};
 }
 
 if (require.main === module) {
