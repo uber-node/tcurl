@@ -80,7 +80,7 @@ Logger.prototype.response = function response(res, opts) {
     }
 
     if (opts.raw) {
-        console.log(res);
+        process.stdout.write(res.body);
     } else {
         console.log(JSON.stringify(res));
     }
