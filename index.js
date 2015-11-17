@@ -320,10 +320,11 @@ TCurl.prototype.readThrift = function readThrift(opts, delegate) {
             return null;
         }
     }
-    return self.readThriftDir(opts);
+    return self.readThriftDir(opts, delegate);
 };
 
 TCurl.prototype.readThriftDir = function readThriftDir(opts, delegate) {
+    debugger;
     var sources = {};
     var files = fs.readdirSync(opts.thrift);
     files.forEach(function eachFile(file) {
