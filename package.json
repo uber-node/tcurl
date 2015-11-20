@@ -22,12 +22,12 @@
   "dependencies": {
     "camelcase-keys": "^1.0.0",
     "debug-logtron": "^3.2.0",
-    "minimist": "^1.1.1",
     "my-local-ip": "^1.0.0",
     "process": "^0.11.0",
     "rc": "^1.1.2",
     "readable-stream": "^1.0.33",
     "safe-json-parse": "^4.0.0",
+    "shon": "^3.0.4",
     "tchannel": "^3.5.19",
     "traverse": "^0.6.6",
     "xtend": "^4.0.0"
@@ -62,7 +62,8 @@
     "trace": "itape test/index.js --trace",
     "travis": "npm run cover -s && istanbul report lcov && ((cat coverage/lcov.info | coveralls) || exit 0)",
     "view-cover": "opn ./coverage/index.html",
-    "man": "bash scripts/create-man.sh"
+    "man": "bash scripts/create-man.sh",
+    "build-usage": "usage2json tcurl.usage > tcurl.json && usage2json health.usage > health.json"
   },
   "engines": {
     "node": ">= 0.10.x"

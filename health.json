@@ -1,0 +1,189 @@
+{
+  "name": "tcurl",
+  "description": [
+    "tcurl --health <service>",
+    "Send a TChannel/Thrift Meta::health check to a service."
+  ],
+  "usage": [
+    "--health",
+    "[-s|--service] <service>\n    The name of the TChannel/Hyperbahn service to check",
+    "[-p|--peer <peer>...]\n    The peer or peers to connect",
+    "[-P|--peerlist|-H|--hostlist <path>]\n    The path to a file containing a JSON list of peers",
+    "[--timeout <ms>] :quantity\n    Timeout in milliseconds",
+    "[--requests <count>] :quantity\n    Number of requests to make",
+    "[--rate <rate>] :quantity\n    Request rate in requests per second",
+    "[--delay <ms>] :quantity\n    Delay between requests in milliseconds",
+    "[--time <ms>] :quantity\n    Benchmark duration in milliseconds"
+  ],
+  "terms": {
+    "health": {
+      "flags": [
+        {
+          "flag": "--health",
+          "long": true
+        }
+      ],
+      "arg": null,
+      "command": null,
+      "collectorType": null,
+      "type": null,
+      "required": true,
+      "minLength": null,
+      "maxLength": null,
+      "help": ""
+    },
+    "service": {
+      "flags": [
+        {
+          "flag": "-s",
+          "short": true
+        },
+        {
+          "flag": "--service",
+          "long": true
+        }
+      ],
+      "arg": "service",
+      "command": null,
+      "collectorType": null,
+      "type": null,
+      "required": true,
+      "minLength": null,
+      "maxLength": null,
+      "help": "The name of the TChannel/Hyperbahn service to check",
+      "optionalFlag": true
+    },
+    "peers": {
+      "flags": [
+        {
+          "flag": "-p",
+          "short": true
+        },
+        {
+          "flag": "--peer",
+          "long": true
+        }
+      ],
+      "arg": "peer",
+      "command": null,
+      "collectorType": "array",
+      "type": null,
+      "required": false,
+      "minLength": 0,
+      "maxLength": null,
+      "help": "The peer or peers to connect"
+    },
+    "hostlist": {
+      "flags": [
+        {
+          "flag": "-P",
+          "short": true
+        },
+        {
+          "flag": "--peerlist",
+          "long": true
+        },
+        {
+          "flag": "-H",
+          "short": true
+        },
+        {
+          "flag": "--hostlist",
+          "long": true
+        }
+      ],
+      "arg": "path",
+      "command": null,
+      "collectorType": null,
+      "type": null,
+      "required": false,
+      "minLength": null,
+      "maxLength": null,
+      "help": "The path to a file containing a JSON list of peers"
+    },
+    "timeout": {
+      "flags": [
+        {
+          "flag": "--timeout",
+          "long": true
+        }
+      ],
+      "arg": "ms",
+      "command": null,
+      "collectorType": null,
+      "type": "quantity",
+      "required": false,
+      "minLength": null,
+      "maxLength": null,
+      "help": "Timeout in milliseconds"
+    },
+    "requests": {
+      "flags": [
+        {
+          "flag": "--requests",
+          "long": true
+        }
+      ],
+      "arg": "count",
+      "command": null,
+      "collectorType": null,
+      "type": "quantity",
+      "required": false,
+      "minLength": null,
+      "maxLength": null,
+      "help": "Number of requests to make"
+    },
+    "rate": {
+      "flags": [
+        {
+          "flag": "--rate",
+          "long": true
+        }
+      ],
+      "arg": "rate",
+      "command": null,
+      "collectorType": null,
+      "type": "quantity",
+      "required": false,
+      "minLength": null,
+      "maxLength": null,
+      "help": "Request rate in requests per second"
+    },
+    "delay": {
+      "flags": [
+        {
+          "flag": "--delay",
+          "long": true
+        }
+      ],
+      "arg": "ms",
+      "command": null,
+      "collectorType": null,
+      "type": "quantity",
+      "required": false,
+      "minLength": null,
+      "maxLength": null,
+      "help": "Delay between requests in milliseconds"
+    },
+    "time": {
+      "flags": [
+        {
+          "flag": "--time",
+          "long": true
+        }
+      ],
+      "arg": "ms",
+      "command": null,
+      "collectorType": null,
+      "type": "quantity",
+      "required": false,
+      "minLength": null,
+      "maxLength": null,
+      "help": "Benchmark duration in milliseconds"
+    }
+  },
+  "parsers": {},
+  "converters": {},
+  "validators": {},
+  "collectors": {}
+}

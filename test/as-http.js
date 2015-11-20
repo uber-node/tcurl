@@ -117,6 +117,9 @@ test('getting an ok response', function t(assert) {
             response: function response(res) {
                 assert.equals(res.toString(), 'Hello Test', 'response should equal');
             },
+            error: function error(err) {
+                assert.ifError(err);
+            },
             exit: function exit(err) {
                 assert.equal(this.statusCode, 200, 'status code should be 200');
                 server.close();
