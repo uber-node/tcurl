@@ -65,6 +65,16 @@ Logger.prototype.error = function error(err) {
             fullType: err.fullType
         }));
 
+    } else if (err.type === 'tchannel.request.timeout') {
+        console.error(err.name + ': ' + err.message);
+        console.log(JSON.stringify({
+            isError: true,
+            name: err.name,
+            message: err.message,
+            type: err.type,
+            fullType: err.fullType
+        }));
+
     } else {
         self.exitCode = self.exitCode | EXIT_CODES.ERROR;
         console.error(err);
