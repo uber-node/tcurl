@@ -31,22 +31,39 @@ module.exports = HealthLogger;
 
 function HealthLogger() {
     var self = this;
+    self.deemed = null;
     Logger.call(self);
 }
 
 util.inherits(HealthLogger, Logger);
 
+HealthLogger.prototype.deem = function deem(verdict) {
+    var self = this;
+    if (self.deemed !== null) {
+        return;
+    }
+    self.deemed = verdict;
+    console.log(verdict);
+};
+
+HealthLogger.prototype.error = function error(err) {
+    var self = this;
+    self.deem('NOT OK');
+    Logger.prototype.error.call(self, err);
+    self.exitCode = EXIT_CODES.ERROR;
+};
+
 HealthLogger.prototype.response = function response(res, opts) {
     var self = this;
     var msg;
     if (self.exitCode === 0 && res && res.ok && res.body && res.body.ok) {
-        console.log('OK');
+        self.deem('OK');
     } else {
-        self.exitCode = self.exitCode | EXIT_CODES.HEALTH_NOT_OK;
+        self.deem('NOT OK');
+        self.exitCode = EXIT_CODES.HEALTH_NOT_OK;
         msg = 'NOT OK';
         if (res && res.body && res.body.message) {
-            msg += '\n' + res.body.message;
+            console.log(res.body.message);
         }
-        console.log(msg);
     }
 };

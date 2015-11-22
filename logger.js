@@ -42,32 +42,22 @@ Logger.prototype.log = function log(message) {
 Logger.prototype.error = function error(err) {
     var self = this;
 
-    if (err.isErrorFrame) {
+    console.log(JSON.stringify({
+        ok: false,
+        name: err.name,
+        message: err.message,
+        isError: true,
+        isErrorFrame: err.isErrorFrame || false,
+        errorCode: err.errorCode,
+        type: err.type,
+        fullType: err.fullType
+    }));
 
-        // TChannel error codes are small positive numbers or 0xFF
-        // Exit code high bit reserved for exit due to signal
-        self.exitCode = self.exitCode | err.errorCode & 0x7f;
+    console.error(err.name + ': ' + err.message);
 
-        console.error(err.name + ': ' + err.message);
-
-        if (err.message.lastIndexOf('no peer available', 0) === 0) {
-            console.error('This likely means that the service you are trying to reach ' +
-                'is not advertising to Hyperbahn.');
-        }
-
-        console.log(JSON.stringify({
-            ok: false,
-            name: err.name,
-            message: err.message,
-            isErrorFrame: true,
-            errorCode: err.errorCode,
-            type: err.type,
-            fullType: err.fullType
-        }));
-
-    } else {
-        self.exitCode = self.exitCode | EXIT_CODES.ERROR;
-        console.error(err);
+    if (err.message.lastIndexOf('no peer available', 0) === 0) {
+        console.error('This likely means that the service you are trying to reach ' +
+            'is not advertising to Hyperbahn.');
     }
 
 };
