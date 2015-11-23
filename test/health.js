@@ -290,9 +290,10 @@ test('test un-healthy endpoint with subprocess', function t(assert) {
         proc.stderr.setEncoding('utf-8');
         proc.stderr.on('data', onStderr);
         proc.on('exit', onExit);
+        var out = [];
 
         function onStdout(line) {
-            assert.equal(line, 'NOT OK\nhaving a bad day!\n', 'expected stdout');
+            out.push(line);
         }
         function onStderr(line) {
             console.error(line);
@@ -300,6 +301,7 @@ test('test un-healthy endpoint with subprocess', function t(assert) {
         }
 
         function onExit(code) {
+            assert.deepEqual(out, ['NOT OK\n', 'having a bad day!\n'], 'expected stdout');
             server.close();
             assert.equal(code, 124, 'exits with status 124');
             assert.end();
@@ -313,6 +315,7 @@ test('test non-existent service with subprocess', function t(assert) {
     var port;
     var serviceName = 'server';
     var server = net.createServer();
+    var proc;
 
     function onServerListen() {
         port = server.address().port;
@@ -330,7 +333,7 @@ test('test non-existent service with subprocess', function t(assert) {
             '--health'
         ];
 
-        var proc = spawn('node', cmd);
+        proc = spawn('node', cmd);
         proc.stdout.setEncoding('utf-8');
         proc.stdout.on('data', onStdout);
         proc.on('exit', onExit);
@@ -338,6 +341,7 @@ test('test non-existent service with subprocess', function t(assert) {
 
     function onStdout(line) {
         assert.equal(line, 'NOT OK\n', 'expected stdout');
+        proc.stdout.removeListener('data', onStdout);
     }
 
     function onExit(code) {
