@@ -42,6 +42,11 @@ Logger.prototype.log = function log(message) {
 Logger.prototype.error = function error(err) {
     var self = this;
 
+    if (typeof err === 'string') {
+        console.error(err);
+        return;
+    }
+
     console.log(JSON.stringify({
         ok: false,
         name: err.name,
