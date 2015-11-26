@@ -89,7 +89,13 @@ function main(argv, delegate) {
         delegate = delegate || new Logger();
         return delegate.log(packageJson.version);
     } else if (shonDelegate.trumped === 'health') {
-        config = shon(healthCommand, ['tcurl'].concat(argv), 1);
+        cursor = new ShonCursor(args, 1);
+        iterator = new ShonIterator(cursor);
+        shonDelegate = new ShonDelegate({
+            cursor: cursor,
+            logUsage: help
+        });
+        config = shon(healthCommand, iterator, shonDelegate);
         delegate = delegate || new HealthLogger();
         config.thrift = path.join(__dirname, 'meta.thrift');
         config.endpoint = 'Meta::health';
