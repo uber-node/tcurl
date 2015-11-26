@@ -1,18 +1,16 @@
 {
   "name": "tcurl",
   "description": [
-    "tcurl <service> [--health | <method> [<body> [<head>]]]",
+    "tcurl <service> [--health | <method> [<body>]]",
     "Sends one or more TChannel requests."
   ],
   "usage": [
     "[-s|--service] <service>\n    The name of the TChannel/Hyperbahn service to send requests to",
     "[-1|--arg1|--method|--endpoint] <method>\n    The name of the endpoint to send requests to or method to call",
-    "[<body>] :shon\n    The Thrift or JSON argument in SHON format",
-    "[<head>] :shon\n    The application headers as SHON arguments",
-    "[-3|--arg3|--body <body>]\n    The body or argument in JSON format",
-    "[-2|--arg2|--head <head>]\n    Application headers in JSON format",
+    "[<body>] :jshon\n    The Thrift or JSON argument in SHON or JSON format",
+    "[--headers <head>] :jshon\n    The application headers as SHON or JSON arguments",
     "[-p|--peer <peer>...]\n    The peer or peers to connect",
-    "[-P|--peerlist|-H|--hostlist <path>]\n    The path to a file containing a JSON list of peers",
+    "[-P|--peerlist|-H|--hostlist <path>]\n    The path to a file containing a JSON list of peers.\n    Favor -P and --peerlist.\n    The --H and --hostlist options are deprecated.",
     "[-r|--raw]\n    Use the raw argument scheme",
     "[--http <method>]\n    Use the HTTP argument scheme with given method",
     "[-j|-J|--json]\n    Use the JSON argument scheme",
@@ -25,6 +23,8 @@
     "[--delay <ms>] :quantity\n    Delay between requests in milliseconds",
     "[--time <ms>] :quantity\n    Benchmark duration in milliseconds",
     "[--health]*\n    Hit the health endpoint for the service",
+    "[-3|--arg3|--body <body>]\n    The body or argument in JSON format.\n    Favor the use of <body> directly.\n    These flags are deprecated.",
+    "[-2|--arg2|--head <head>]\n    Application headers in JSON format.\n    Favor the --headers flag.\n    These flags are deprecated.",
     "[-h]* short help",
     "[--help]* man page",
     "[-v|--version]* print version"
@@ -85,70 +85,27 @@
       "arg": "body",
       "command": null,
       "collectorType": null,
-      "type": "shon",
+      "type": "jshon",
       "required": false,
       "minLength": null,
       "maxLength": null,
-      "help": "The Thrift or JSON argument in SHON format"
+      "help": "The Thrift or JSON argument in SHON or JSON format"
     },
     "head": {
-      "flags": [],
-      "arg": "head",
-      "command": null,
-      "collectorType": null,
-      "type": "shon",
-      "required": false,
-      "minLength": null,
-      "maxLength": null,
-      "help": "The application headers as SHON arguments"
-    },
-    "jsonBody": {
       "flags": [
         {
-          "flag": "-3",
-          "short": true
-        },
-        {
-          "flag": "--arg3",
-          "long": true
-        },
-        {
-          "flag": "--body",
-          "long": true
-        }
-      ],
-      "arg": "body",
-      "command": null,
-      "collectorType": null,
-      "type": null,
-      "required": false,
-      "minLength": null,
-      "maxLength": null,
-      "help": "The body or argument in JSON format"
-    },
-    "jsonHead": {
-      "flags": [
-        {
-          "flag": "-2",
-          "short": true
-        },
-        {
-          "flag": "--arg2",
-          "long": true
-        },
-        {
-          "flag": "--head",
+          "flag": "--headers",
           "long": true
         }
       ],
       "arg": "head",
       "command": null,
       "collectorType": null,
-      "type": null,
+      "type": "jshon",
       "required": false,
       "minLength": null,
       "maxLength": null,
-      "help": "Application headers in JSON format"
+      "help": "The application headers as SHON or JSON arguments"
     },
     "peers": {
       "flags": [
@@ -196,7 +153,7 @@
       "required": false,
       "minLength": null,
       "maxLength": null,
-      "help": "The path to a file containing a JSON list of peers"
+      "help": "The path to a file containing a JSON list of peers.\n    Favor -P and --peerlist.\n    The --H and --hostlist options are deprecated."
     },
     "raw": {
       "flags": [
@@ -431,6 +388,54 @@
       "maxLength": null,
       "help": "Hit the health endpoint for the service",
       "trump": true
+    },
+    "jsonBody": {
+      "flags": [
+        {
+          "flag": "-3",
+          "short": true
+        },
+        {
+          "flag": "--arg3",
+          "long": true
+        },
+        {
+          "flag": "--body",
+          "long": true
+        }
+      ],
+      "arg": "body",
+      "command": null,
+      "collectorType": null,
+      "type": null,
+      "required": false,
+      "minLength": null,
+      "maxLength": null,
+      "help": "The body or argument in JSON format.\n    Favor the use of <body> directly.\n    These flags are deprecated."
+    },
+    "jsonHead": {
+      "flags": [
+        {
+          "flag": "-2",
+          "short": true
+        },
+        {
+          "flag": "--arg2",
+          "long": true
+        },
+        {
+          "flag": "--head",
+          "long": true
+        }
+      ],
+      "arg": "head",
+      "command": null,
+      "collectorType": null,
+      "type": null,
+      "required": false,
+      "minLength": null,
+      "maxLength": null,
+      "help": "Application headers in JSON format.\n    Favor the --headers flag.\n    These flags are deprecated."
     },
     "help": {
       "flags": [

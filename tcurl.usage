@@ -1,22 +1,20 @@
-tcurl <service> [--health | <method> [<body> [<head>]]]
+tcurl <service> [--health | <method> [<body>]]
 Sends one or more TChannel requests.
 
 service: [-s|--service] <service>
     The name of the TChannel/Hyperbahn service to send requests to
 endpoint: [-1|--arg1|--method|--endpoint] <method>
     The name of the endpoint to send requests to or method to call
-body: [<body>] :shon
-    The Thrift or JSON argument in SHON format
-head: [<head>] :shon
-    The application headers as SHON arguments
-jsonBody: [-3|--arg3|--body <body>]
-    The body or argument in JSON format
-jsonHead: [-2|--arg2|--head <head>]
-    Application headers in JSON format
+body: [<body>] :jshon
+    The Thrift or JSON argument in SHON or JSON format
+head: [--headers <head>] :jshon
+    The application headers as SHON or JSON arguments
 peers: [-p|--peer <peer>...]
     The peer or peers to connect
 hostlist: [-P|--peerlist|-H|--hostlist <path>]
-    The path to a file containing a JSON list of peers
+    The path to a file containing a JSON list of peers.
+    Favor -P and --peerlist.
+    The --H and --hostlist options are deprecated.
 raw: [-r|--raw]
     Use the raw argument scheme
 http: [--http <method>]
@@ -27,8 +25,6 @@ thrift: [-t|--thrift <thrift>]
     Where to find Thrift IDL files
 strict: [--strict=true*|-s=true|--no-strict=false|-S=false] :boolean
     Whether to use strict Thrift parsing
-shardKey: [--sk|--shard-key|--shardKey <sk>]
-    Ringpop shard key
 timeout: [--timeout <ms>] :quantity
     Timeout in milliseconds
 requests: [--requests <count>] :quantity
@@ -39,6 +35,17 @@ delay: [--delay <ms>] :quantity
     Delay between requests in milliseconds
 time: [--time <ms>] :quantity
     Benchmark duration in milliseconds
+shardKey: [--sk|--shard-key|--shardKey <sk>]
+    Ringpop shard key
+    Favor --sk and --shard-key. --shardKey is deprecated.
+jsonBody: [-3|--arg3|--body <body>]
+    The body or argument in JSON format.
+    Favor the use of <body> directly.
+    These flags are deprecated.
+jsonHead: [-2|--arg2|--head <head>]
+    Application headers in JSON format.
+    Favor the --headers flag.
+    These flags are deprecated.
 health: [--health]*
     Hit the health endpoint for the service
 help: [-h]* short help

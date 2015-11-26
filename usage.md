@@ -2,7 +2,7 @@
 
 ## SYNOPSIS
 
-    tcurl <service> <method> [<body> [<head>]]
+    tcurl <service> <method> [<body>]
           [-t | --thrift | -j | --json | -r | --raw | --http]
           [--rate] [--requests] [--time] [--delay]
           [--timeout] [--sk]

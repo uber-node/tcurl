@@ -11,51 +11,55 @@
 A command line utility for sending requests to TChannel services.
 
 ```
-usage: tcurl <service> [--health | <method> [<body> [<head>]]]
+usage: tcurl <service> [--health | <method> [<body>]]
 Sends one or more TChannel requests.
-  [-s|--service] <service>
-    The name of the TChannel/Hyperbahn service to send requests to
-  [-1|--arg1|--method|--endpoint] <method>
-    The name of the endpoint to send requests to or method to call
-  [<body>]
-    The argument in SHON format, e.g., [ --key value --key value ]
-    Use --body to supply in JSON format instead.
-  [<head>]
-    The headers in SHON format.
-    Use --head to supply in JSON format instead.
-  [-3|--arg3|--body <body>]
-    The body or argument in JSON
-  [-2|--arg2|--head <head>]
-    Application headers in JSON
+  <service>
+    The name of the TChannel/Hyperbahn service to send requests to.
+  <method>
+    The name of the endpoint to send requests to or method to call.
+  [<body>] :jshon
+    The Thrift or JSON argument in SHON or JSON format.
+  [--headers <head>] :jshon
+    The application headers as SHON or JSON arguments.
   [-p|--peer <peer>...]
-    The peer or peers to connect
-  [-P|--peerlist|-H|--hostlist <path>]
-    The path to a file containing a JSON list of peers
+    The peer or peers to connect.
+  [-P|--peerlist <path>]
+    The path to a file containing a JSON list of peers.
+    The -H and --hostlist flags are deprecated.
   [-r|--raw]
-    Use the raw argument scheme
+    Use the raw argument scheme.
   [--http <method>]
-    Use the HTTP argument scheme with given method
+    Use the HTTP argument scheme with given method.
   [-j|--json]
-    Use the JSON argument scheme
+    Use the JSON argument scheme.
+    The -J flag is deprecated.
   [-t|--thrift <thrift>]
-    Where to find Thrift IDL files
-  [--strict=true*|-s=true|--no-strict=false|-S=false]
-    Whether to use strict Thrift parsing
-  [--shard-key|--shardKey <sk>]
+    Where to find Thrift IDL files.
+  [--no-strict]
+    Disable strict Thrift parsing.
+  [--sk|--shard-key <sk>]
     Ringpop shard key
+    The --shardKey flag is deprecated.
   [--timeout <ms>]
     Timeout in milliseconds
+  [--requests <count>]
+    Number of requests to make
   [--rate <rate>]
     Request rate in requests per second
   [--delay <ms>]
     Delay between requests in milliseconds
-  [--duration <ms>]
-    Test duration in milliseconds
-  [--health]
+  [--time <ms>]
+    Benchmark duration in milliseconds
+  [--health]*
     Hit the health endpoint for the service
-  [-h] short help
-  [--help] man page
-  [-v|--version]
+  [-h]* short help
+  [--help]* man page
+  [-v|--version]* print version
+
+The [-3|--arg3|--body <body>] argument is deprecated
+in favor of passing <body> as JSON or SHON as a positional argument.
+The [-2|--arg2|--head <head>] argument is deprecated
+in favor of the --headers <headers> argument with JSON or SHON.
 ```
 
 [Click here for full usage docs.](usage.md)
