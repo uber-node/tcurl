@@ -1,0 +1,46 @@
+tcurl <service> [--health | <method> [<body> [<head>]]]
+Sends one or more TChannel requests.
+
+service: [-s|--service] <service>
+    The name of the TChannel/Hyperbahn service to send requests to
+endpoint: [-1|--arg1|--method|--endpoint] <method>
+    The name of the endpoint to send requests to or method to call
+body: [<body>] :shon
+    The Thrift or JSON argument in SHON format
+head: [<head>] :shon
+    The application headers as SHON arguments
+jsonBody: [-3|--arg3|--body <body>]
+    The body or argument in JSON format
+jsonHead: [-2|--arg2|--head <head>]
+    Application headers in JSON format
+peers: [-p|--peer <peer>...]
+    The peer or peers to connect
+hostlist: [-P|--peerlist|-H|--hostlist <path>]
+    The path to a file containing a JSON list of peers
+raw: [-r|--raw]
+    Use the raw argument scheme
+http: [--http <method>]
+    Use the HTTP argument scheme with given method
+json: [-j|-J|--json]
+    Use the JSON argument scheme
+thrift: [-t|--thrift <thrift>]
+    Where to find Thrift IDL files
+strict: [--strict=true*|-s=true|--no-strict=false|-S=false] :boolean
+    Whether to use strict Thrift parsing
+shardKey: [--sk|--shard-key|--shardKey <sk>]
+    Ringpop shard key
+timeout: [--timeout <ms>] :quantity
+    Timeout in milliseconds
+requests: [--requests <count>] :quantity
+    Number of requests to make
+rate: [--rate <rate>] :quantity
+    Request rate in requests per second
+delay: [--delay <ms>] :quantity
+    Delay between requests in milliseconds
+time: [--time <ms>] :quantity
+    Benchmark duration in milliseconds
+health: [--health]*
+    Hit the health endpoint for the service
+help: [-h]* short help
+man: [--help]* man page
+version: [-v|--version]* print version

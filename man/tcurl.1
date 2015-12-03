@@ -3,74 +3,120 @@
 \fBtcurl\fR \- curl for tchannel
 .SH SYNOPSIS
 .P
-\fBtcurl\fP [\-\-help] [\-v | \-\-version] [\-H] [\-p] [\-t]
-        [\-2 | \-\-arg2 | \-\-head] [\-3 | \-\-arg3 | \-\-body]
-        [\-\-shardKey] [\-\-no\-strict] [\-\-timeout]
-        [\-\-http] [\-\-raw] [\-\-health]
-        [\-\-rate] [\-\-requests] [\-\-time] [\-\-delay]
+.RS 2
+.nf
+tcurl <service> <method> [<body> [<head>]]
+      [\-t | \-\-thrift | \-j | \-\-json | \-r | \-\-raw | \-\-http]
+      [\-\-rate] [\-\-requests] [\-\-time] [\-\-delay]
+      [\-\-timeout] [\-\-sk]
+tcurl <service> \-\-health
+tcurl [\-h | \-\-help | \-v | \-\-version]
+.fi
+.RE
 .SH DESCRIPTION
 .P
 \fBtcurl\fP is a tool for constructing and sending requests to
+.br
 a tchannel service\. It supports thrift, JSON, and raw request format\.
 .SH EXAMPLES
 .RS 0
 .IP \(bu 2
-\fBtcurl \-p localhost:8080 serviceName \-\-health\fP
+\fBtcurl \-p localhost:8080 service \-\-health\fP
 .IP \(bu 2
-\fBtcurl \-p 127\.0\.0\.1:21300 hyperbahn Hyperbahn::discover \-t \./hyperbahn\.thrift \-3 '{"query":{"serviceName":"ringpop"}}'\fP
+\fBtcurl \-p localhost:8080 service endpoint \-\-raw 'message'\fP
 .IP \(bu 2
-\fBtcurl \-p localhost:8080 serviceName endpoint \-\-raw \-3 'message'\fP
+\fBtcurl hyperbahn Hyperbahn::discover \-\-body '{"query":{"serviceName":"ringpop"}}' \-t \./hyperbahn\.thrift\fP
+.IP \(bu 2
+\fBtcurl hyperbahn Hyperbahn::discover [ \-\-query [ \-\-serviceName ringpop ] ] \-t \./hyperbahn\.thrift\fP
 
 .RE
 .SH OPTIONS
 .P
-\fB\-v | \-\-version\fP
-    Print the current version\.
+\fB\-p host:port <service> <endpoint>\fP
 .P
-\fB\-p host:port serviceName [endpoint]\fP
-    Specify the destination where the request should be sent to
-    including the host, the port, the serviceName, and the endpoint\.
-    When used with \-\-health, endpoint is not required\.
+Specify the destination where the request should be sent to including the host,
+.br
+the port, the serviceName, and the endpoint\.  When used with \fB\-\-health\fP,
+.br
+endpoint is not required\.  You can specify any number of peers and TChannel
+.br
+will choose one for each request\.
 .P
-\fB\-H host\-file serviceName [endpoint]\fP
-    Similar to the \fB\-p\fP option\. Instead of the host:port, it takes a host\-file
-    that contains a list of host:port where this request can be sent to\.
-    TChannel will only pick one host:port to send the request to\.
+\fB\-P <peer\-file> <serviceName> <endpoint>\fP
+.P
+Similar to the \fB\-p\fP option\. Instead of the host:port, it takes a peer\-file that
+.br
+contains a list of host:port where this request can be sent to\.  TChannel will
+.br
+only pick one host:port to send the request to\.
+.P
+The peer list file must be a JSON array of host:port strings\.
 .P
 \fB\-\-health\fP
-    Send a health check request to a sevice that implements the "Meta::health"
-    health check endpoint\.
-    For example:
+.P
+Send a health check request to a sevice that implements the "Meta::health"
+.br
+health check endpoint\.  For example:
 .P
 .RS 2
 .nf
-```
 tcurl \-p 127\.0\.0\.1:21300 serviceName \-\-heath
-```
-It is the same as:
-```
-tcurl \-p 127\.0\.0\.1:21300 serviceName Meta::health \-t meta\.thrift
-```
 .fi
 .RE
 .P
-\fB\-2 | \-\-arg2 | \-\-head content\fP
-    Specify the head (a\.k\.a\. arg2) of the request\. The content can be either a
-    raw string or a JSON string depending on the request format\.
-.P
-\fB\-3 | \-\-arg3 | \-\-body content\fP
-    Specify the body (a\.k\.a\. arg3) of the request\. The content can be either a
-    raw string or a JSON string depending on the request format\.
+It is the same as:
 .P
 .RS 2
 .nf
-An example of a JSON string would be
-```
-\|'{"query":{"serviceName":"ringpop"}}',
-```
-
-where the corresponding thrift IDL format is:
-```
+tcurl \-p 127\.0\.0\.1:21300 serviceName Meta::health \-t meta\.thrift
+.fi
+.RE
+.P
+\fB\-2 | \-\-arg2 | \-\-head <content>\fP
+.P
+Specify the head (a\.k\.a\. arg2) of the request\. The content can be either a raw
+.br
+string or a JSON string depending on the request format\.
+.P
+You can also provide the headers in SHON format as a positional argument
+.br
+(without the \fB\-\-head\fP flag)\.
+.P
+.RS 2
+.nf
+tcurl curly Stooges::nyuck [ \-\-nyuck [ \-\-name tcurl \-\-language js ] ] \\
+    \-t curly\.thrift
+.fi
+.RE
+.P
+\fB\-3 | \-\-arg3 | \-\-body <content>\fP
+.P
+Specify the body (a\.k\.a\. arg3) of the request\. The content can be either a raw
+.br
+string or a JSON string depending on the request format\.
+.P
+An example of a JSON string would be:
+.P
+.RS 2
+.nf
+{"query":{"serviceName":"ringpop"}}
+.fi
+.RE
+.P
+These can also be expressed in SHON (SHell Object Notation) with a positional
+.br
+argument (without the \fB\-\-body\fP flag)\.
+.P
+.RS 2
+.nf
+[ \-\-query [ \-\-serviceName ringpop ] ]
+.fi
+.RE
+.P
+The corresponding thrift IDL format is:
+.P
+.RS 2
+.nf
 struct DiscoveryQuery {
   1: required string serviceName
 }
@@ -80,122 +126,139 @@ service Hyperbahn {
         1: required DiscoveryQuery query
     )
 }
-```
 .fi
 .RE
 .P
-\fB\-t thrift\fP
-    Used with the thrift encoding to specify the path to the thrift files\.
-    The thrift option value can either point to a file or a directory\.
-    For example:
+\fB\-t <thrift>\fP
+.P
+Used with the thrift encoding to specify the path to the thrift files\.  The
+.br
+thrift option value can either point to a file or a directory\.  For example:
 .P
 .RS 2
 .nf
-```
-tcurl \-p 127\.0\.0\.1:21300 serviceName Meta::health \-t \. \-3 null
-```
-The above command assumes that current folder contains the meta\.thrift IDL file\.
+tcurl \-p 127\.0\.0\.1:21300 serviceName Meta::health \-t \. null
 .fi
 .RE
+.P
+The above command assumes that current folder contains the meta\.thrift IDL file\.
 .P
 \fB\-\-no\-strict\fP
-    Disable the default strict mode of thrift parsing\. When strict mode is enabled,
-    all fields must be specified as either "required" or "optional"\.
+.P
+Disable the default strict mode of thrift parsing\. When strict mode is enabled,
+.br
+all fields must be specified as either "required" or "optional"\.
 .P
 \fB\-\-raw\fP
-    Use raw format (i\.e\. plain text) for request\.
 .P
-\fB\-\-http method\fP
-    Send an http request described in the form of tchannel\.
-    For example:
+Use raw format (i\.e\. plain text) for request\.
+.P
+\fB\-\-http <method>\fP
+.P
+Send an http request described in the form of tchannel\.  For example:
 .P
 .RS 2
 .nf
-```
-tcurl \-p 127\.0\.0\.1:21300 echoServer '/echo' \-\-http 'POST' \-\-head '{"Accept": "text/plain"}' \-\-body '"hello world!"'
-```
+tcurl \-p 127\.0\.0\.1:21300 echoServer /echo
+    \-\-http=POST 'Hello World!' [ \-\-Accept text/plain ]
 .fi
 .RE
 .P
-\fB\-\-timeout value\fP
-    Specify the maximum time in miniseconds this request can take
-    until it timeout\. 
-    For example, the following command specifies a timeout value
-    of one second:
+\fB\-\-timeout <value>\fP
+.P
+Specify the maximum time in miniseconds this request can take until it timeout\.
+.br
+For example, the following command specifies a timeout value of one second:
 .P
 .RS 2
 .nf
-```
-tcurl \-p 127\.0\.0\.1:8080 serviceName endpoint \-\-timeout 1000 
-```
+tcurl \-p 127\.0\.0\.1:8080 serviceName endpoint \-\-timeout 1000
 .fi
 .RE
 .P
-\fB\-\-rate value\fP
-    This option is required in order to use the benchmark mode,
-    where the same request is sent multiple times to the server\.
-    It specifies the number of requests sent at each batch\.
-    For example, the following command sends health check requests to a
-    service at the rate of 1000, i\.e\., send 1000 requests and wait
-    until the requests all complete before sending the next 1000\.
+\fB\-\-rate <value>\fP
+.P
+This option is required in order to use the benchmark mode, where the same
+.br
+request is sent multiple times to the server\.  It specifies the number of
+.br
+requests sent at each batch\.  For example, the following command sends health
+.br
+check requests to a service at the rate of 1000, i\.e\., send 1000 requests and
+.br
+wait until the requests all complete before sending the next 1000\.
 .P
 .RS 2
 .nf
-```
-tcurl \-p localhost:8080 serviceName \-\-health \-\-rate 1000 
-```
+tcurl \-p localhost:8080 serviceName \-\-health \-\-rate 1000
 .fi
 .RE
 .P
-\fB\-\-delay value\fP
-    Specify the time in milliseconds it should delay between each batch\.
-    For example, the following command delays 100ms between each batch send\.
+\fB\-\-delay <value>\fP
+.P
+Specify the time in milliseconds it should delay between each batch\.  For
+.br
+example, the following command delays 100ms between each batch send\.
 .P
 .RS 2
 .nf
-```
 tcurl \-p localhost:8080 serviceName \-\-health \-\-rate 1000 \-\-delay 100
-```
 .fi
 .RE
 .P
-\fB\-\-requests value\fP
-    Specify the total number of requests that can be sent in
-    benchmark mode\. By default, there is no limit on the number of
-    requests that can be sent\.
+\fB\-\-requests <value>\fP
 .P
-\fB\-\-time value\fP
-    Specify the time in milliseconds how long the benchmark should run\.
-    When no request limit is set, the default value is 30 seconds\. Otherwise,
-    the default is unlimited\.
+Specify the total number of requests that can be sent in benchmark mode\. By
+.br
+default, there is no limit on the number of requests that can be sent\.
+.P
+\fB\-\-time <value>\fP
+.P
+Specify the time in milliseconds how long the benchmark should run\.  When no
+.br
+request limit is set, the default value is 30 seconds\. Otherwise, the default
+.br
+is unlimited\.
+.P
+\fB\-h\fP
+.P
+View abbreviated usage information\.
+.P
+\fB\-\-help\fP
+.P
+View the man page\.
+.P
+\fB\-v | \-\-version\fP
+.P
+Print the current version\.
 .SH EXIT CODES
 .RS 0
 .IP \(bu 2
-\fB0: for all successful requests\fP
+0: for all successful requests
 .IP \(bu 2
-\fB1: timeout\fP
+1: timeout
 .IP \(bu 2
-\fB2: cancelled\fP
+2: cancelled
 .IP \(bu 2
-\fB3: busy\fP
+3: busy
 .IP \(bu 2
-\fB4: declined\fP
+4: declined
 .IP \(bu 2
-\fB5: unexpected error\fP
+5: unexpected error
 .IP \(bu 2
-\fB6: bad request\fP
+6: bad request
 .IP \(bu 2
-\fB7: network error\fP
+7: network error
 .IP \(bu 2
-\fB8: unhealthy (broken circuit)\fP
+8: unhealthy (broken circuit)
 .IP \(bu 2
-\fB124: unhealthy / not OK thrift response\fP
+124: unhealthy / not OK thrift response
 .IP \(bu 2
-\fB125: misc tcurl / tchannel internal error\fP
+125: misc tcurl / tchannel internal error
 .IP \(bu 2
-\fB126: response not ok error\fP
+126: response not ok error
 .IP \(bu 2
-\fB127: fatal protocol error\fP
+127: fatal protocol error
 
 .RE
 .SH BUGS
@@ -207,11 +270,13 @@ MIT Licenced
 .SH SEE ALSO
 .RS 0
 .IP \(bu 2
-\fBTChannel: https://github\.com/uber/tchannel\fP
+TChannel: https://github\.com/uber/tchannel
 .IP \(bu 2
-\fBHyperbahn: https://github\.com/uber/hyperbahn\fP
+Hyperbahn: https://github\.com/uber/hyperbahn
 .IP \(bu 2
-\fBRingpop: https://github\.com/uber/ringpop\-node\fP
+Ringpop: https://github\.com/uber/ringpop\-node
+.IP \(bu 2
+SHON: https://github\.com/kriskowal/shon
 
 .RE
 

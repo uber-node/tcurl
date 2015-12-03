@@ -73,7 +73,7 @@ test('getting an ok response', function t(assert) {
             endpoint,
             '-2', JSON.stringify(head),
             '-3', JSON.stringify(body),
-            '-J'
+            '-j'
         ];
 
         tcurl.exec(cmd, {
@@ -152,8 +152,8 @@ test('timeouts work', function t(assert) {
             endpoint,
             '-2', JSON.stringify(head),
             '-3', JSON.stringify(body),
-            '--timeout', 300,
-            '-J'
+            '--timeout', '300',
+            '-j'
         ];
 
         tcurl.exec(cmd, {

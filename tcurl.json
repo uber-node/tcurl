@@ -1,0 +1,495 @@
+{
+  "name": "tcurl",
+  "description": [
+    "tcurl <service> [--health | <method> [<body> [<head>]]]",
+    "Sends one or more TChannel requests."
+  ],
+  "usage": [
+    "[-s|--service] <service>\n    The name of the TChannel/Hyperbahn service to send requests to",
+    "[-1|--arg1|--method|--endpoint] <method>\n    The name of the endpoint to send requests to or method to call",
+    "[<body>] :shon\n    The Thrift or JSON argument in SHON format",
+    "[<head>] :shon\n    The application headers as SHON arguments",
+    "[-3|--arg3|--body <body>]\n    The body or argument in JSON format",
+    "[-2|--arg2|--head <head>]\n    Application headers in JSON format",
+    "[-p|--peer <peer>...]\n    The peer or peers to connect",
+    "[-P|--peerlist|-H|--hostlist <path>]\n    The path to a file containing a JSON list of peers",
+    "[-r|--raw]\n    Use the raw argument scheme",
+    "[--http <method>]\n    Use the HTTP argument scheme with given method",
+    "[-j|-J|--json]\n    Use the JSON argument scheme",
+    "[-t|--thrift <thrift>]\n    Where to find Thrift IDL files",
+    "[--strict=true*|-s=true|--no-strict=false|-S=false] :boolean\n    Whether to use strict Thrift parsing",
+    "[--sk|--shard-key|--shardKey <sk>]\n    Ringpop shard key",
+    "[--timeout <ms>] :quantity\n    Timeout in milliseconds",
+    "[--requests <count>] :quantity\n    Number of requests to make",
+    "[--rate <rate>] :quantity\n    Request rate in requests per second",
+    "[--delay <ms>] :quantity\n    Delay between requests in milliseconds",
+    "[--time <ms>] :quantity\n    Benchmark duration in milliseconds",
+    "[--health]*\n    Hit the health endpoint for the service",
+    "[-h]* short help",
+    "[--help]* man page",
+    "[-v|--version]* print version"
+  ],
+  "terms": {
+    "service": {
+      "flags": [
+        {
+          "flag": "-s",
+          "short": true
+        },
+        {
+          "flag": "--service",
+          "long": true
+        }
+      ],
+      "arg": "service",
+      "command": null,
+      "collectorType": null,
+      "type": null,
+      "required": true,
+      "minLength": null,
+      "maxLength": null,
+      "help": "The name of the TChannel/Hyperbahn service to send requests to",
+      "optionalFlag": true
+    },
+    "endpoint": {
+      "flags": [
+        {
+          "flag": "-1",
+          "short": true
+        },
+        {
+          "flag": "--arg1",
+          "long": true
+        },
+        {
+          "flag": "--method",
+          "long": true
+        },
+        {
+          "flag": "--endpoint",
+          "long": true
+        }
+      ],
+      "arg": "method",
+      "command": null,
+      "collectorType": null,
+      "type": null,
+      "required": true,
+      "minLength": null,
+      "maxLength": null,
+      "help": "The name of the endpoint to send requests to or method to call",
+      "optionalFlag": true
+    },
+    "body": {
+      "flags": [],
+      "arg": "body",
+      "command": null,
+      "collectorType": null,
+      "type": "shon",
+      "required": false,
+      "minLength": null,
+      "maxLength": null,
+      "help": "The Thrift or JSON argument in SHON format"
+    },
+    "head": {
+      "flags": [],
+      "arg": "head",
+      "command": null,
+      "collectorType": null,
+      "type": "shon",
+      "required": false,
+      "minLength": null,
+      "maxLength": null,
+      "help": "The application headers as SHON arguments"
+    },
+    "jsonBody": {
+      "flags": [
+        {
+          "flag": "-3",
+          "short": true
+        },
+        {
+          "flag": "--arg3",
+          "long": true
+        },
+        {
+          "flag": "--body",
+          "long": true
+        }
+      ],
+      "arg": "body",
+      "command": null,
+      "collectorType": null,
+      "type": null,
+      "required": false,
+      "minLength": null,
+      "maxLength": null,
+      "help": "The body or argument in JSON format"
+    },
+    "jsonHead": {
+      "flags": [
+        {
+          "flag": "-2",
+          "short": true
+        },
+        {
+          "flag": "--arg2",
+          "long": true
+        },
+        {
+          "flag": "--head",
+          "long": true
+        }
+      ],
+      "arg": "head",
+      "command": null,
+      "collectorType": null,
+      "type": null,
+      "required": false,
+      "minLength": null,
+      "maxLength": null,
+      "help": "Application headers in JSON format"
+    },
+    "peers": {
+      "flags": [
+        {
+          "flag": "-p",
+          "short": true
+        },
+        {
+          "flag": "--peer",
+          "long": true
+        }
+      ],
+      "arg": "peer",
+      "command": null,
+      "collectorType": "array",
+      "type": null,
+      "required": false,
+      "minLength": 0,
+      "maxLength": null,
+      "help": "The peer or peers to connect"
+    },
+    "hostlist": {
+      "flags": [
+        {
+          "flag": "-P",
+          "short": true
+        },
+        {
+          "flag": "--peerlist",
+          "long": true
+        },
+        {
+          "flag": "-H",
+          "short": true
+        },
+        {
+          "flag": "--hostlist",
+          "long": true
+        }
+      ],
+      "arg": "path",
+      "command": null,
+      "collectorType": null,
+      "type": null,
+      "required": false,
+      "minLength": null,
+      "maxLength": null,
+      "help": "The path to a file containing a JSON list of peers"
+    },
+    "raw": {
+      "flags": [
+        {
+          "flag": "-r",
+          "short": true
+        },
+        {
+          "flag": "--raw",
+          "long": true
+        }
+      ],
+      "arg": null,
+      "command": null,
+      "collectorType": null,
+      "type": null,
+      "required": false,
+      "minLength": null,
+      "maxLength": null,
+      "help": "Use the raw argument scheme"
+    },
+    "http": {
+      "flags": [
+        {
+          "flag": "--http",
+          "long": true
+        }
+      ],
+      "arg": "method",
+      "command": null,
+      "collectorType": null,
+      "type": null,
+      "required": false,
+      "minLength": null,
+      "maxLength": null,
+      "help": "Use the HTTP argument scheme with given method"
+    },
+    "json": {
+      "flags": [
+        {
+          "flag": "-j",
+          "short": true
+        },
+        {
+          "flag": "-J",
+          "short": true
+        },
+        {
+          "flag": "--json",
+          "long": true
+        }
+      ],
+      "arg": null,
+      "command": null,
+      "collectorType": null,
+      "type": null,
+      "required": false,
+      "minLength": null,
+      "maxLength": null,
+      "help": "Use the JSON argument scheme"
+    },
+    "thrift": {
+      "flags": [
+        {
+          "flag": "-t",
+          "short": true
+        },
+        {
+          "flag": "--thrift",
+          "long": true
+        }
+      ],
+      "arg": "thrift",
+      "command": null,
+      "collectorType": null,
+      "type": null,
+      "required": false,
+      "minLength": null,
+      "maxLength": null,
+      "help": "Where to find Thrift IDL files"
+    },
+    "strict": {
+      "flags": [
+        {
+          "flag": "--strict",
+          "long": true,
+          "value": "true",
+          "default": true
+        },
+        {
+          "flag": "-s",
+          "short": true,
+          "value": "true"
+        },
+        {
+          "flag": "--no-strict",
+          "long": true,
+          "value": "false"
+        },
+        {
+          "flag": "-S",
+          "short": true,
+          "value": "false"
+        }
+      ],
+      "arg": null,
+      "command": null,
+      "collectorType": null,
+      "type": "boolean",
+      "required": false,
+      "minLength": null,
+      "maxLength": null,
+      "help": "Whether to use strict Thrift parsing"
+    },
+    "shardKey": {
+      "flags": [
+        {
+          "flag": "--sk",
+          "long": true
+        },
+        {
+          "flag": "--shard-key",
+          "long": true
+        },
+        {
+          "flag": "--shardKey",
+          "long": true
+        }
+      ],
+      "arg": "sk",
+      "command": null,
+      "collectorType": null,
+      "type": null,
+      "required": false,
+      "minLength": null,
+      "maxLength": null,
+      "help": "Ringpop shard key"
+    },
+    "timeout": {
+      "flags": [
+        {
+          "flag": "--timeout",
+          "long": true
+        }
+      ],
+      "arg": "ms",
+      "command": null,
+      "collectorType": null,
+      "type": "quantity",
+      "required": false,
+      "minLength": null,
+      "maxLength": null,
+      "help": "Timeout in milliseconds"
+    },
+    "requests": {
+      "flags": [
+        {
+          "flag": "--requests",
+          "long": true
+        }
+      ],
+      "arg": "count",
+      "command": null,
+      "collectorType": null,
+      "type": "quantity",
+      "required": false,
+      "minLength": null,
+      "maxLength": null,
+      "help": "Number of requests to make"
+    },
+    "rate": {
+      "flags": [
+        {
+          "flag": "--rate",
+          "long": true
+        }
+      ],
+      "arg": "rate",
+      "command": null,
+      "collectorType": null,
+      "type": "quantity",
+      "required": false,
+      "minLength": null,
+      "maxLength": null,
+      "help": "Request rate in requests per second"
+    },
+    "delay": {
+      "flags": [
+        {
+          "flag": "--delay",
+          "long": true
+        }
+      ],
+      "arg": "ms",
+      "command": null,
+      "collectorType": null,
+      "type": "quantity",
+      "required": false,
+      "minLength": null,
+      "maxLength": null,
+      "help": "Delay between requests in milliseconds"
+    },
+    "time": {
+      "flags": [
+        {
+          "flag": "--time",
+          "long": true
+        }
+      ],
+      "arg": "ms",
+      "command": null,
+      "collectorType": null,
+      "type": "quantity",
+      "required": false,
+      "minLength": null,
+      "maxLength": null,
+      "help": "Benchmark duration in milliseconds"
+    },
+    "health": {
+      "flags": [
+        {
+          "flag": "--health",
+          "long": true
+        }
+      ],
+      "arg": null,
+      "command": null,
+      "collectorType": null,
+      "type": "trump",
+      "required": false,
+      "minLength": null,
+      "maxLength": null,
+      "help": "Hit the health endpoint for the service",
+      "trump": true
+    },
+    "help": {
+      "flags": [
+        {
+          "flag": "-h",
+          "short": true
+        }
+      ],
+      "arg": null,
+      "command": null,
+      "collectorType": null,
+      "type": "trump",
+      "required": false,
+      "minLength": null,
+      "maxLength": null,
+      "help": "short help",
+      "trump": true
+    },
+    "man": {
+      "flags": [
+        {
+          "flag": "--help",
+          "long": true
+        }
+      ],
+      "arg": null,
+      "command": null,
+      "collectorType": null,
+      "type": "trump",
+      "required": false,
+      "minLength": null,
+      "maxLength": null,
+      "help": "man page",
+      "trump": true
+    },
+    "version": {
+      "flags": [
+        {
+          "flag": "-v",
+          "short": true
+        },
+        {
+          "flag": "--version",
+          "long": true
+        }
+      ],
+      "arg": null,
+      "command": null,
+      "collectorType": null,
+      "type": "trump",
+      "required": false,
+      "minLength": null,
+      "maxLength": null,
+      "help": "print version",
+      "trump": true
+    }
+  },
+  "parsers": {},
+  "converters": {},
+  "validators": {},
+  "collectors": {}
+}

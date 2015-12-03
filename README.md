@@ -8,27 +8,54 @@
 
 <!-- [![NPM][npm-png]][npm] -->
 
-A command line utility to talk to a tchannel server.
+A command line utility for sending requests to TChannel services.
 
 ```
-tcurl [-H <hostlist> | -p host:port] <service> <endpoint> [options]
-
-  Version: 4.14.0
-
-  Options:
-    --head (-2) [data] JSON or raw
-    --body (-3) [data] JSON or raw
-      (JSON promoted to Thrift via IDL when applicable)
-    --shardKey send ringpop shardKey transport header
-    --depth=n configure inspect printing depth
-    --thrift (-t) [dir] directory containing Thrift files
-    --no-strict parse Thrift loosely
-    --json (-j) Use JSON argument scheme
-      (default unless endpoint has ::)
-    --http method
-    --raw encode arg2 & arg3 raw
-    --health
-    --timeout [num]
+usage: tcurl <service> [--health | <method> [<body> [<head>]]]
+Sends one or more TChannel requests.
+  [-s|--service] <service>
+    The name of the TChannel/Hyperbahn service to send requests to
+  [-1|--arg1|--method|--endpoint] <method>
+    The name of the endpoint to send requests to or method to call
+  [<body>]
+    The argument in SHON format, e.g., [ --key value --key value ]
+    Use --body to supply in JSON format instead.
+  [<head>]
+    The headers in SHON format.
+    Use --head to supply in JSON format instead.
+  [-3|--arg3|--body <body>]
+    The body or argument in JSON
+  [-2|--arg2|--head <head>]
+    Application headers in JSON
+  [-p|--peer <peer>...]
+    The peer or peers to connect
+  [-P|--peerlist|-H|--hostlist <path>]
+    The path to a file containing a JSON list of peers
+  [-r|--raw]
+    Use the raw argument scheme
+  [--http <method>]
+    Use the HTTP argument scheme with given method
+  [-j|--json]
+    Use the JSON argument scheme
+  [-t|--thrift <thrift>]
+    Where to find Thrift IDL files
+  [--strict=true*|-s=true|--no-strict=false|-S=false]
+    Whether to use strict Thrift parsing
+  [--shard-key|--shardKey <sk>]
+    Ringpop shard key
+  [--timeout <ms>]
+    Timeout in milliseconds
+  [--rate <rate>]
+    Request rate in requests per second
+  [--delay <ms>]
+    Delay between requests in milliseconds
+  [--duration <ms>]
+    Test duration in milliseconds
+  [--health]
+    Hit the health endpoint for the service
+  [-h] short help
+  [--help] man page
+  [-v|--version]
 ```
 
 [Click here for full usage docs.](usage.md)

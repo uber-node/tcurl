@@ -29,7 +29,6 @@
 var TChannel = require('tchannel');
 var TChannelAsThrift = require('tchannel/as/thrift');
 var TChannelAsJSON = require('tchannel/as/json');
-var minimist = require('minimist');
 var myLocalIp = require('my-local-ip');
 var DebugLogtron = require('debug-logtron');
 var rc = require('rc');
@@ -54,73 +53,51 @@ var Benchmark = require('./benchmark');
 var HealthLogger = require('./health-logger');
 var TCurlAsHttp = require('./as-http');
 
+var shon = require('shon/exec');
+var logUsage = require('shon/log-usage');
+
 var packageJson = require('./package.json');
 
 module.exports = main;
 
-var minimistArgs = {
-    string: ['thrift', 'json', 'head', 'body'],
-    boolean: ['raw', 'json', 'strict'],
-    alias: {
-        v: 'version',
-        p: 'peer',
-        H: 'hostlist',
-        t: 'thrift',
-        j: 'json',
-        2: 'head',
-        3: 'body',
-        arg2: 'head',
-        arg3: 'body'
-    },
-    default: {
-        head: '',
-        body: '',
-        strict: true
-    }
-};
+var command = require('./tcurl.json');
+var healthCommand = require('./health.json');
 
 // delegate implements error(message, err), response(res), exit()
 function main(argv, delegate) {
 
-    argv = minimist(argv, minimistArgs);
+    var config = shon(command, ['tcurl'].concat(argv), 1);
 
-    var conf = extend(
-        rc('tcurl', {}, argv),
-        env(),
-        argv
-    );
-
-    if (conf.version) {
+    if (config === 'help') {
+        return help();
+    } else if (config === 'man') {
+        return man();
+    } else if (config === 'version') {
         delegate = delegate || new Logger();
         return delegate.log(packageJson.version);
+    } else if (config === 'health') {
+        config = shon(healthCommand, ['tcurl'].concat(argv), 1);
+        delegate = delegate || new HealthLogger();
+        config.thrift = path.join(__dirname, 'meta.thrift');
+        config.endpoint = 'Meta::health';
     }
 
-    if (conf.help) {
-        return printFullHelp();
-    } else if (conf.h || conf._.length === 0) {
-        return help();
-    }
+    config = extend(
+        rc('tcurl', {}, config),
+        env(),
+        config
+    );
 
-    var opts = parseArgs(conf);
-    if (opts === null) {
-        help();
-        return;
-    }
+    config = parseArgs(config);
 
     var tcurl = new TCurl();
 
-    if (opts.health) {
-        delegate = delegate || new HealthLogger();
-        opts.thrift = path.join(__dirname, 'meta.thrift');
-        opts.endpoint = 'Meta::health';
-    } else {
-        delegate = delegate || new Logger();
-    }
+    delegate = delegate || new Logger();
 
-    if (opts.rate) {
+    if (config.rate) {
         var benchmark = new Benchmark({
             tcurl: tcurl,
-            cmdOptions: opts,
+            cmdOptions: config,
             logger: delegate
         });
         return benchmark.run(function done() {
@@ -129,7 +106,7 @@ function main(argv, delegate) {
         });
     }
 
-    return tcurl.request(opts, delegate);
+    return tcurl.request(config, delegate);
 }
 
 function env() {
@@ -148,14 +125,10 @@ main.exec = function execMain(str, delegate) {
 };
 
 function help() {
-    console.log('usage: tcurl [--help] [-v | --version] [-H] [-p] [-t]');
-    console.log('             [-2 | --arg2 | --head] [-3 | --arg3 | --body]');
-    console.log('             [--shardKey] [--no-strict]  [--timeout]');
-    console.log('             [--http] [--raw] [--health]');
-    console.log('             [--rate] [--requests] [--time] [--delay]');
+    logUsage(command);
 }
 
-function printFullHelp() {
+function man() {
     var options = {
         cwd: process.cwd(),
         /*eslint no-process-env: [0] */
@@ -168,22 +141,23 @@ function printFullHelp() {
 }
 
 function parseArgs(argv) {
-    var service = argv._[0];
-    var endpoint = argv._[1];
+    var service = argv.service;
+    var endpoint = argv.endpoint;
     var health = argv.health;
 
-    // Prefer peer specified at the command line over hostlist
+    // Prefer peer specified at the command line over peerlist
     var peers;
-    if (argv.peer) {
-        peers = [argv.peer];
+    if (argv.peers.length) {
+        peers = argv.peers;
     } else if (argv.hostlist) {
         peers = parsePeerlist(argv.hostlist);
         if (peers === null) {
             return null;
         }
     } else {
-        console.error('Please specify peers either with --hostlist or --peer arguments, or hostlist in tcurlrc');
-        return null;
+        console.error('Must specify at least one peer with -p|--peer or -P|--peerlist');
+        help();
+        process.exit(-1);
     }
 
     var ip;
@@ -226,8 +200,10 @@ function parseArgs(argv) {
     }
 
     return {
-        head: argv.head,
         body: argv.body,
+        head: argv.head,
+        jsonHead: argv.jsonHead,
+        jsonBody: argv.jsonBody,
         shardKey: argv.shardKey,
         service: service,
         endpoint: endpoint,
@@ -283,8 +259,10 @@ TCurl.prototype.parseJsonArgs = function parseJsonArgs(opts, delegate) {
 
     var tuple = null;
     if (opts.head) {
-        tuple = safeJsonParse(opts.head);
-        opts.head = tuple[1] || opts.head;
+        opts.jsonHead = opts.head;
+    } if (opts.jsonHead) {
+        tuple = safeJsonParse(opts.jsonHead);
+        opts.jsonHead = tuple[1] || opts.jsonHead;
     }
     if (tuple && tuple[0]) {
         delegate.error('Failed to parse arg2 (i.e., head) as JSON');
@@ -293,8 +271,10 @@ TCurl.prototype.parseJsonArgs = function parseJsonArgs(opts, delegate) {
 
     tuple = null;
     if (opts.body) {
-        tuple = safeJsonParse(opts.body);
-        opts.body = tuple[1] || opts.body;
+        opts.jsonBody = opts.body;
+    } else if (opts.jsonBody) {
+        tuple = safeJsonParse(opts.jsonBody);
+        opts.jsonBody = tuple[1] || opts.jsonBody;
     }
     if (tuple && tuple[0]) {
         delegate.error('Failed to parse arg3 (i.e., body) as JSON');
@@ -461,12 +441,15 @@ TCurl.prototype.asThrift = function asThrift(opts, request, delegate, done) {
     // is checked and this error thrown will change when we move to
     // the thriftrw rewrite.
     try {
-        sender.send(request, opts.endpoint, opts.head,
-            opts.body, onResponse);
+        sender.send(request, opts.endpoint, opts.jsonHead,
+            opts.jsonBody, onResponse);
     } catch (err) {
         // TODO untangle this mess
         if (err.message === fmt('type %s_args not found', opts.endpoint)) {
             delegate.error(fmt('%s endpoint does not exist', opts.endpoint));
+        } else if (err.message.lastIndexOf('Got unexpected unserializable thrift', 0) === 0) {
+            delegate.error('Invalid body for Thrift request');
+            delegate.log(err);
         } else {
             delegate.error('Error response received for the as-thrift request.');
             delegate.error(err);
@@ -484,7 +467,7 @@ TCurl.prototype.asThrift = function asThrift(opts, request, delegate, done) {
 TCurl.prototype.asRaw = function asRaw(opts, request, delegate, done) {
     var self = this;
     request.headers.as = 'raw';
-    request.send(opts.endpoint, opts.head, opts.body,
+    request.send(opts.endpoint, opts.jsonHead, opts.jsonBody,
         onResponse);
 
     function onResponse(err, res, arg2, arg3) {
@@ -499,8 +482,8 @@ TCurl.prototype.asHTTP = function asHTTP(opts, client, subChan, delegate, done) 
         subChannel: subChan,
         method: opts.http,
         endpoint: opts.endpoint,
-        headers: opts.head,
-        body: opts.body,
+        headers: opts.jsonHead,
+        body: opts.jsonBody,
         done: done,
         logger: delegate
     });
@@ -510,8 +493,8 @@ TCurl.prototype.asHTTP = function asHTTP(opts, client, subChan, delegate, done) 
 TCurl.prototype.asJSON = function asJSON(opts, request, delegate, done) {
     var self = this;
     var sender = new TChannelAsJSON();
-    sender.send(request, opts.endpoint, opts.head,
-        opts.body, onResponse);
+    sender.send(request, opts.endpoint, opts.jsonHead,
+        opts.jsonBody, onResponse);
 
     function onResponse(err, res, arg2, arg3) {
         done();
@@ -533,7 +516,7 @@ TCurl.prototype.onResponse = function onResponse(err, res, arg2, arg3, opts, del
         res.head = arg2;
     }
     if (arg3 !== undefined && res) {
-        res.body = arg3;
+        res.jsonBody = arg3;
     }
 
     delegate.response(res, opts);

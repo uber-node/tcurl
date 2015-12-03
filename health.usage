@@ -1,0 +1,20 @@
+tcurl --health <service>
+Send a TChannel/Thrift Meta::health check to a service.
+
+health: --health
+service: [-s|--service] <service>
+    The name of the TChannel/Hyperbahn service to check
+peers: [-p|--peer <peer>...]
+    The peer or peers to connect
+hostlist: [-P|--peerlist|-H|--hostlist <path>]
+    The path to a file containing a JSON list of peers
+timeout: [--timeout <ms>] :quantity
+    Timeout in milliseconds
+requests: [--requests <count>] :quantity
+    Number of requests to make
+rate: [--rate <rate>] :quantity
+    Request rate in requests per second
+delay: [--delay <ms>] :quantity
+    Delay between requests in milliseconds
+time: [--time <ms>] :quantity
+    Benchmark duration in milliseconds

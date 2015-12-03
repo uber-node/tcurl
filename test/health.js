@@ -82,7 +82,6 @@ test('getting an ok', function t(assert) {
         var cmd = [
             '-p', hostname + ':' + port,
             serviceName,
-            null,
             '--health'
         ];
 
@@ -127,9 +126,8 @@ test('getting a notOk', function t(assert) {
     function onListening() {
         var cmd = [
             '-p', hostname + ':' + port,
-            serviceName,
-            null,
-            '--health'
+            '--health',
+            serviceName
         ];
 
         tcurl.exec(cmd, {
@@ -175,7 +173,6 @@ test('getting an error', function t(assert) {
         var cmd = [
             '-p', hostname + ':' + port,
             serviceName,
-            null,
             '--health'
         ];
 
@@ -224,9 +221,8 @@ test('test healthy endpoint with subprocess', function t(assert) {
         var cmd = [
             path.join(__dirname, '..', 'index.js'),
             '-p', hostname + ':' + port,
-            serviceName,
-            null,
-            '--health'
+            '--health',
+            serviceName
         ];
 
         var proc = spawn('node', cmd);
@@ -280,7 +276,6 @@ test('test un-healthy endpoint with subprocess', function t(assert) {
             path.join(__dirname, '..', 'index.js'),
             '-p', hostname + ':' + port,
             serviceName,
-            null,
             '--health'
         ];
 
@@ -328,9 +323,8 @@ test('test non-existent service with subprocess', function t(assert) {
         var cmd = [
             path.join(__dirname, '..', 'index.js'),
             '-p', hostname + ':' + port,
-            serviceName,
-            null,
-            '--health'
+            '--health',
+            serviceName
         ];
 
         proc = spawn('node', cmd);

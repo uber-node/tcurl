@@ -68,10 +68,9 @@ test('getting 10 reponses', function t(assert) {
         var cmd = [
             '-p', hostname + ':' + port,
             serviceName,
-            null,
             '--health',
-            '--rate', 10,
-            '--requests', 10
+            '--rate', '10',
+            '--requests', '10'
         ];
 
         tcurl.exec(cmd, {
@@ -81,7 +80,8 @@ test('getting 10 reponses', function t(assert) {
             response: function response() {
                 this.responseCount++;
             },
-            error: function error() {
+            error: function error(err) {
+                assert.ifError(err);
                 this.errorCount++;
             },
             exit: function exit() {
@@ -129,10 +129,9 @@ test('getting 5 reponses and 5 errors', function t(assert) {
         var cmd = [
             '-p', hostname + ':' + port,
             serviceName,
-            null,
             '--health',
-            '--rate', 10,
-            '--requests', 10
+            '--rate', '10',
+            '--requests', '10'
         ];
 
         tcurl.exec(cmd, {
@@ -181,10 +180,9 @@ test('time limit works', function t(assert) {
         var cmd = [
             '-p', hostname + ':' + port,
             serviceName,
-            null,
             '--health',
-            '--rate', 10,
-            '--time', 20
+            '--rate', '10',
+            '--time', '20'
         ];
 
         tcurl.exec(cmd, {
@@ -233,11 +231,10 @@ test('delay works', function t(assert) {
         var cmd = [
             '-p', hostname + ':' + port,
             serviceName,
-            null,
             '--health',
-            '--rate', 10,
-            '--requests', 21,
-            '--delay', 30
+            '--rate', '10',
+            '--requests', '21',
+            '--delay', '30'
         ];
 
         var start = Date.now();
