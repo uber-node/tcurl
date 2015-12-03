@@ -28,7 +28,7 @@
     "readable-stream": "^1.0.33",
     "safe-json-parse": "^4.0.0",
     "shon": "^3.0.4",
-    "tchannel": "^3.5.19",
+    "tchannel": "^3.6.0",
     "traverse": "^0.6.6",
     "xtend": "^4.0.0"
   },
