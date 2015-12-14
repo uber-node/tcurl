@@ -105,6 +105,68 @@ test('getting an ok response', function t(assert) {
     }
 });
 
+test('getting an ok response with implied body', function t(assert) {
+    var server = new TChannel({
+        serviceName: 'server'
+    });
+    var opts = {
+        isOptions: true
+    };
+
+    var hostname = '127.0.0.1';
+    var port;
+    var endpoint = 'echo';
+    var head = {some: 'echo-head'};
+    var body = {};
+    var serviceName = 'server';
+
+    var tchannelJSON = TChannelJSON();
+    tchannelJSON.register(server, endpoint, opts, echo);
+
+    function onServerListen() {
+        port = server.address().port;
+        onListening();
+    }
+
+    server.listen(0, hostname, onServerListen);
+
+    function onListening() {
+        var cmd = [
+            '-p', hostname + ':' + port,
+            serviceName,
+            endpoint,
+            '-2', JSON.stringify(head),
+            '-j'
+        ];
+
+        tcurl.exec(cmd, {
+            error: function error(err) {
+                assert.ifError(err);
+            },
+            response: function response(res) {
+                assert.deepEqual(res, {
+                    ok: true,
+                    head: null,
+                    body: {
+                        opts: {
+                            isOptions: true
+                        },
+                        head: head,
+                        body: body,
+                        serviceName: serviceName
+                    },
+                    headers: {
+                        'as': 'json'
+                    }
+                });
+            },
+            exit: function exit() {
+                server.close();
+                assert.end();
+            }
+        });
+    }
+});
 function slowEcho(opts, req, head, body, cb) {
     timers.setTimeout(function slowReturn() {
         cb(null, {

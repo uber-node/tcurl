@@ -494,7 +494,7 @@ TCurl.prototype.asJSON = function asJSON(opts, request, delegate, done) {
     var self = this;
     var sender = new TChannelAsJSON();
     sender.send(request, opts.endpoint, opts.jsonHead,
-        opts.jsonBody, onResponse);
+        opts.jsonBody || {}, onResponse);
 
     function onResponse(err, res, arg2, arg3) {
         done();
