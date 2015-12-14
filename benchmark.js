@@ -63,10 +63,9 @@ function Benchmark(options) {
 
 Benchmark.prototype.run = function run(callback) {
     var self = this;
-    self.tcurl.prepare(self.cmdOptions, self.delegate, function send() {
-        self.stopTime = Date.now() + self.time;
-        self.sendLoop(onComplete);
-    });
+    self.tcurl.prepare(self.cmdOptions, self.delegate);
+    self.stopTime = Date.now() + self.time;
+    self.sendLoop(onComplete);
 
     function onComplete() {
         process.nextTick(callback);

@@ -325,7 +325,7 @@ TCurl.prototype.readThriftDir = function readThriftDir(opts, delegate) {
     return sources[opts.service];
 };
 
-TCurl.prototype.prepare = function prepare(opts, delegate, callback) {
+TCurl.prototype.prepare = function prepare(opts, delegate) {
     var self = this;
 
     // May report errors for arg2, arg3, or both
@@ -348,19 +348,6 @@ TCurl.prototype.prepare = function prepare(opts, delegate, callback) {
             }
         }
     });
-
-    var peer = self.subChannel.peers.choosePeer();
-    // TODO: the host option should be called peer, hostPort, or address
-    self.client.waitForIdentified({host: peer.hostPort}, onIdentified);
-
-    function onIdentified(err) {
-        if (err) {
-            delegate.error(err);
-            return delegate.exit();
-        }
-
-        callback();
-    }
 };
 
 TCurl.prototype.createRequest = function createRequest(opts) {
@@ -397,14 +384,8 @@ TCurl.prototype.send = function send(opts, request, delegate) {
 
 TCurl.prototype.request = function tcurlRequest(opts, delegate) {
     var self = this;
-    self.prepare(opts, delegate, onReady);
-
-    function onReady() {
-        self.send(opts,
-            self.createRequest(opts),
-            delegate
-        );
-    }
+    self.prepare(opts, delegate);
+    self.send(opts, self.createRequest(opts), delegate);
 };
 
 TCurl.prototype.asThrift = function asThrift(opts, request, delegate, done) {
