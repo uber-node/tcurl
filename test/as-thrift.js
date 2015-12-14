@@ -62,8 +62,7 @@ test('getting an ok response', function t(assert) {
             '-t', path.join(__dirname, '..'),
             '-2', JSON.stringify({
                 headerName: 'requestHeader'
-            }),
-            '-3', JSON.stringify({})
+            })
         ];
 
         tcurl.exec(cmd, {
