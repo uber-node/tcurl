@@ -474,8 +474,10 @@ TCurl.prototype.asHTTP = function asHTTP(opts, client, subChan, delegate, done) 
 TCurl.prototype.asJSON = function asJSON(opts, request, delegate, done) {
     var self = this;
     var sender = new TChannelAsJSON();
-    sender.send(request, opts.endpoint, opts.jsonHead,
-        opts.jsonBody || {}, onResponse);
+
+    var body = opts.jsonBody == null ? {} : opts.jsonBody;
+
+    sender.send(request, opts.endpoint, opts.jsonHead, body, onResponse);
 
     function onResponse(err, res, arg2, arg3) {
         done();
