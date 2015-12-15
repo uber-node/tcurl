@@ -303,45 +303,24 @@ TCurl.prototype.parseJsonArgs = function parseJsonArgs(opts, delegate) {
     return null;
 };
 
-TCurl.prototype.readThrift = function readThrift(opts, delegate) {
+TCurl.prototype.findThriftEntryPoint = function findThriftEntryPoint(opts, delegate) {
     var self = this;
     if (opts.thrift == null) {
-        delegate.error('Must specify a thrift file with -t|--thrift for Thrift endpoints');
-        delegate.error('or specify --json for JSON endpoints that contain ::');
         return null;
     }
+    opts.thrift = path.resolve(opts.thrift);
     try {
-        return fs.readFileSync(opts.thrift, 'utf8');
+        var files = fs.readdirSync(opts.thrift);
     } catch (err) {
-        if (err.code !== 'EISDIR') {
-            delegate.error('Failed to read thrift file "' + opts.thrift + '"');
-            delegate.error(err);
-            return null;
+        if (err.code === 'ENOTDIR') {
+            return opts.thrift;
         }
     }
-    return self.readThriftDir(opts, delegate);
-};
-
-TCurl.prototype.readThriftDir = function readThriftDir(opts, delegate) {
-    var sources = {};
-    var files = fs.readdirSync(opts.thrift);
-    files.forEach(function eachFile(file) {
-        var match = /([^\/]+)\.thrift$/.exec(file);
-        if (match) {
-            var serviceName = match[1];
-            var fileName = match[0];
-            var thriftFilepath = path.join(opts.thrift, fileName);
-            sources[serviceName] = fs.readFileSync(thriftFilepath, 'utf8');
-        }
-    });
-
-    if (!sources[opts.service]) {
-        delegate.error('Spec for service "' +
-            opts.service + '" unavailable in directory "' + opts.thrift + '"');
-        return null;
+    var basename = opts.service + '.thrift';
+    if (files.indexOf(basename) >= 0) {
+        return path.join(opts.thrift, basename);
     }
-
-    return sources[opts.service];
+    return null;
 };
 
 TCurl.prototype.prepare = function prepare(opts, delegate) {
@@ -410,16 +389,21 @@ TCurl.prototype.request = function tcurlRequest(opts, delegate) {
 TCurl.prototype.asThrift = function asThrift(opts, request, delegate, done) {
     var self = this;
 
-    var source = self.readThrift(opts, delegate);
+    var entryPoint = self.findThriftEntryPoint(opts, delegate);
 
-    if (source === null) {
+    if (entryPoint === null) {
+        delegate.error('Must specify a thrift file with -t|--thrift for Thrift endpoints');
+        delegate.error('or specify --json for JSON endpoints that contain ::');
         done();
         return delegate.exit();
     }
 
     var sender;
     try {
-        sender = new TChannelAsThrift({source: source, strict: opts.strict});
+        sender = new TChannelAsThrift({
+            entryPoint: entryPoint,
+            strict: opts.strict
+        });
     } catch (err) {
         if (err.name === 'SyntaxError') {
             // TODO works for now: does not work with include support unless
