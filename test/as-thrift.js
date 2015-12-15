@@ -268,6 +268,69 @@ test('tolerates loose thrift with --no-strict', function t(assert) {
 
 });
 
+test('use a thrift include', function t(assert) {
+
+    var serviceName = 'users';
+    var server = new TChannel({
+        serviceName: serviceName
+    });
+
+    var opts = {isOptions: true};
+    var hostname = '127.0.0.1';
+    var port;
+    var endpoint = 'Users::getUser';
+    var userName = 'Bob';
+
+    var tchannelAsThrift = TChannelAsThrift({
+        entryPoint: path.join(__dirname, 'users.thrift')
+    });
+    tchannelAsThrift.register(server, endpoint, opts, getUser);
+
+    function onServerListen() {
+        port = server.address().port;
+        onListening();
+    }
+
+    server.listen(0, hostname, onServerListen);
+
+    function onListening() {
+        var cmd = [
+            '-p', hostname + ':' + port,
+            serviceName,
+            endpoint,
+            '[', '--name', userName, ']',
+            '-t', path.join(__dirname, 'users.thrift')
+        ];
+
+        tcurl.exec(cmd, {
+            error: function error(err) {
+                       console.log(err);
+                assert.ifError(err);
+            },
+            response: function response(res) {
+                assert.deepEqual(res.body, {
+                    name: userName
+                }, 'caller receives thrift body from handler');
+            },
+            exit: function exit() {
+                server.close();
+                assert.end();
+            }
+        });
+    }
+
+    function getUser(options, req, head, body, cb) {
+        cb(null, {
+            ok: true,
+            head: {
+            },
+            body: {
+                name: userName
+            }
+        });
+    }
+
+});
 function ping(options, req, head, body, cb) {
     cb(null, {ok: true, head: {}, body: {pong: true}});
 }
