@@ -29,9 +29,6 @@ var tcurl = require('../index.js');
 var TChannel = require('tchannel');
 var TChannelAsThrift = require('tchannel/as/thrift.js');
 
-var meta = fs.readFileSync(path.join(__dirname, '..', 'meta.thrift'), 'ascii');
-var legacy = fs.readFileSync(path.join(__dirname, 'legacy.thrift'), 'ascii');
-
 test('getting an ok response', function t(assert) {
 
     var serviceName = 'meta';
@@ -44,7 +41,9 @@ test('getting an ok response', function t(assert) {
     var port;
     var endpoint = 'Meta::health';
 
-    var tchannelAsThrift = TChannelAsThrift({source: meta});
+    var tchannelAsThrift = TChannelAsThrift({
+        entryPoint: path.join(__dirname, '..', 'meta.thrift')
+    });
     tchannelAsThrift.register(server, endpoint, opts, health);
 
     function onServerListen() {
@@ -118,7 +117,9 @@ test('hitting non-existent endpoint', function t(assert) {
     var endpoint = 'Meta::health';
     var nonexistentEndpoint = endpoint + 'Foo';
 
-    var tchannelAsThrift = TChannelAsThrift({source: meta});
+    var tchannelAsThrift = TChannelAsThrift({
+        entryPoint: path.join(__dirname, '..', 'meta.thrift')
+    });
     tchannelAsThrift.register(server, endpoint, {}, noop);
 
     function onServerListen() {
@@ -226,7 +227,10 @@ test('tolerates loose thrift with --no-strict', function t(assert) {
 
     server.listen(0, hostname, onServerListen);
 
-    var tchannelAsThrift = TChannelAsThrift({source: legacy, strict: false});
+    var tchannelAsThrift = TChannelAsThrift({
+        entryPoint: path.join(__dirname, 'legacy.thrift'),
+        strict: false
+    });
     tchannelAsThrift.register(server, 'Pinger::ping', {}, ping);
 
     function onListening() {
