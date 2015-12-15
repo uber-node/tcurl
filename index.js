@@ -53,8 +53,10 @@ var Benchmark = require('./benchmark');
 var HealthLogger = require('./health-logger');
 var TCurlAsHttp = require('./as-http');
 
-var shon = require('shon/exec');
-var logUsage = require('shon/log-usage');
+var shon = require('shon/parse');
+var ShonCursor = require('shon/cursor');
+var ShonIterator = require('shon/iterator');
+var ShonDelegate = require('shon/delegate');
 
 var packageJson = require('./package.json');
 
@@ -66,17 +68,34 @@ var healthCommand = require('./health.json');
 // delegate implements error(message, err), response(res), exit()
 function main(argv, delegate) {
 
-    var config = shon(command, ['tcurl'].concat(argv), 1);
+    var args = ['tcurl'].concat(argv);
+    var cursor = new ShonCursor(args, 1);
+    var iterator = new ShonIterator(cursor);
+    var shonDelegate = new ShonDelegate({
+        cursor: cursor,
+        logUsage: help
+    });
+    var config = shon(command, iterator, shonDelegate);
 
-    if (config === 'help') {
+    if (config === null) {
+        return shonDelegate.end();
+    }
+
+    if (shonDelegate.trumped === 'help') {
         return help();
-    } else if (config === 'man') {
+    } else if (shonDelegate.trumped === 'man') {
         return man();
-    } else if (config === 'version') {
+    } else if (shonDelegate.trumped === 'version') {
         delegate = delegate || new Logger();
         return delegate.log(packageJson.version);
-    } else if (config === 'health') {
-        config = shon(healthCommand, ['tcurl'].concat(argv), 1);
+    } else if (shonDelegate.trumped === 'health') {
+        cursor = new ShonCursor(args, 1);
+        iterator = new ShonIterator(cursor);
+        shonDelegate = new ShonDelegate({
+            cursor: cursor,
+            logUsage: help
+        });
+        config = shon(healthCommand, iterator, shonDelegate);
         delegate = delegate || new HealthLogger();
         config.thrift = path.join(__dirname, 'meta.thrift');
         config.endpoint = 'Meta::health';
@@ -125,7 +144,7 @@ main.exec = function execMain(str, delegate) {
 };
 
 function help() {
-    logUsage(command);
+    console.log(fs.readFileSync(path.join(__dirname, 'usage.txt').trim(), 'utf8'));
 }
 
 function man() {

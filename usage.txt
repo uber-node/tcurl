@@ -1,0 +1,49 @@
+usage: tcurl <service> [--health | <method> [<body>]]
+Sends one or more TChannel requests.
+  <service>
+    The name of the TChannel/Hyperbahn service to send requests to.
+  <method>
+    The name of the endpoint to send requests to or method to call.
+  [<body>] :jshon
+    The Thrift or JSON argument in SHON or JSON format.
+  [--headers <head>] :jshon
+    The application headers as SHON or JSON arguments.
+  [-p|--peer <peer>...]
+    The peer or peers to connect.
+  [-P|--peerlist <path>]
+    The path to a file containing a JSON list of peers.
+    The -H and --hostlist flags are deprecated.
+  [-r|--raw]
+    Use the raw argument scheme.
+  [--http <method>]
+    Use the HTTP argument scheme with given method.
+  [-j|--json]
+    Use the JSON argument scheme.
+    The -J flag is deprecated.
+  [-t|--thrift <thrift>]
+    Where to find Thrift IDL files.
+  [--no-strict]
+    Disable strict Thrift parsing.
+  [--sk|--shard-key <sk>]
+    Ringpop shard key
+    The --shardKey flag is deprecated.
+  [--timeout <ms>]
+    Timeout in milliseconds
+  [--requests <count>]
+    Number of requests to make
+  [--rate <rate>]
+    Request rate in requests per second
+  [--delay <ms>]
+    Delay between requests in milliseconds
+  [--time <ms>]
+    Benchmark duration in milliseconds
+  [--health]*
+    Hit the health endpoint for the service
+  [-h]* short help
+  [--help]* man page
+  [-v|--version]* print version
+
+The [-3|--arg3|--body <body>] argument is deprecated
+in favor of passing <body> as JSON or SHON as a positional argument.
+The [-2|--arg2|--head <head>] argument is deprecated
+in favor of the --headers <headers> argument with JSON or SHON.
