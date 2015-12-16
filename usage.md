@@ -159,6 +159,19 @@ View the man page.
 Print the current version.
 
 
+## FILES
+
+TCurl can be configured with default parameters using a either /etc/tcurlrc or
+a .tcurlrc in the current working directory or any of its parent directories.
+The rc file may be in INI or JSON format.
+
+    {
+        "hostlist": "/etc/ringpop/hosts.json"
+    }
+
+`hostlist` is the fully qualified path of a JSON file containing an array of
+host:port strings.
+
 ## EXIT CODES
 
 - 0: for all successful requests

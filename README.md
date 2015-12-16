@@ -105,6 +105,16 @@ loopback.
 To make supporting external IPs easier we've made `localhost` resolve to the external IP of the machine.
 This means if your listening on loopback you have to use `127.0.0.1` and not `localhost`
 
+## tcurlrc
+
+TCurl can be configured with default parameters using a either /etc/tcurlrc or
+a .tcurlrc in the current working directory or any of its parent directories.
+The rc file may be in INI or JSON format.
+
+    {
+        "hostlist": "/etc/ringpop/hosts.json"
+    }
+
 ## Exit Codes
 
  - 0: for all successful requests
