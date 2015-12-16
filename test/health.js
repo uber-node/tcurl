@@ -52,6 +52,14 @@ function badHealth(opts, req, head, body, cb) {
     });
 }
 
+function skHealth(opts, req, head, body, cb) {
+    var ok = req.headers.sk === 'd34dc0d3';
+    return cb(null, {
+        ok: ok,
+        body: {ok: ok}
+    });
+}
+
 function veryBadHealth(opts, req, head, body, cb) {
     var networkError = new Error('network failure');
     cb(networkError);
@@ -69,7 +77,7 @@ test('getting an ok', function t(assert) {
     var port;
     var endpoint = 'Meta::health';
     var serviceName = 'server';
-    asThrift.register(server, endpoint, opts, goodHealth);
+    asThrift.register(server, endpoint, opts, skHealth);
 
     function onServerListen() {
         port = server.address().port;
@@ -82,12 +90,15 @@ test('getting an ok', function t(assert) {
         var cmd = [
             '-p', hostname + ':' + port,
             serviceName,
-            '--health'
+            '--health',
+            '--sk', 'd34dc0d3'
         ];
 
         tcurl.exec(cmd, {
             responded: false,
             response: function response(res) {
+                assert.equal(res.ok, true, 'should be ok');
+                assert.equal(res.body.ok, true, 'response should be ok');
                 this.responded = true;
             },
             error: function error(err) {
