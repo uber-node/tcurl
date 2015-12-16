@@ -282,7 +282,7 @@ TCurl.prototype.parseJsonArgs = function parseJsonArgs(opts, delegate) {
     var tuple = null;
     if (opts.head) {
         opts.jsonHead = opts.head;
-    } if (opts.jsonHead) {
+    } else if (opts.jsonHead) {
         tuple = safeJsonParse(opts.jsonHead);
         opts.jsonHead = tuple[1] || opts.jsonHead;
     }
