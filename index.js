@@ -96,6 +96,9 @@ function main(argv, delegate) {
             logUsage: help
         });
         config = shon(healthCommand, iterator, shonDelegate);
+        if (config === null) {
+            return shonDelegate.end();
+        }
         delegate = delegate || new HealthLogger();
         config.thrift = path.join(__dirname, 'meta.thrift');
         config.endpoint = 'Meta::health';
