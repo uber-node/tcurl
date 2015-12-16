@@ -16,15 +16,15 @@
     "[-j|-J|--json]\n    Use the JSON argument scheme",
     "[-t|--thrift <thrift>]\n    Where to find Thrift IDL files",
     "[--strict=true*|-s=true|--no-strict=false|-S=false] :boolean\n    Whether to use strict Thrift parsing",
-    "[--sk|--shard-key|--shardKey <sk>]\n    Ringpop shard key",
     "[--timeout <ms>] :quantity\n    Timeout in milliseconds",
     "[--requests <count>] :quantity\n    Number of requests to make",
     "[--rate <rate>] :quantity\n    Request rate in requests per second",
     "[--delay <ms>] :quantity\n    Delay between requests in milliseconds",
     "[--time <ms>] :quantity\n    Benchmark duration in milliseconds",
-    "[--health]*\n    Hit the health endpoint for the service",
+    "[--sk|--shard-key|--shardKey <sk>]\n    Ringpop shard key\n    Favor --sk and --shard-key. --shardKey is deprecated.",
     "[-3|--arg3|--body <body>]\n    The body or argument in JSON format.\n    Favor the use of <body> directly.\n    These flags are deprecated.",
     "[-2|--arg2|--head <head>]\n    Application headers in JSON format.\n    Favor the --headers flag.\n    These flags are deprecated.",
+    "[--health]*\n    Hit the health endpoint for the service",
     "[-h]* short help",
     "[--help]* man page",
     "[-v|--version]* print version"
@@ -268,30 +268,6 @@
       "maxLength": null,
       "help": "Whether to use strict Thrift parsing"
     },
-    "shardKey": {
-      "flags": [
-        {
-          "flag": "--sk",
-          "long": true
-        },
-        {
-          "flag": "--shard-key",
-          "long": true
-        },
-        {
-          "flag": "--shardKey",
-          "long": true
-        }
-      ],
-      "arg": "sk",
-      "command": null,
-      "collectorType": null,
-      "type": null,
-      "required": false,
-      "minLength": null,
-      "maxLength": null,
-      "help": "Ringpop shard key"
-    },
     "timeout": {
       "flags": [
         {
@@ -372,22 +348,29 @@
       "maxLength": null,
       "help": "Benchmark duration in milliseconds"
     },
-    "health": {
+    "shardKey": {
       "flags": [
         {
-          "flag": "--health",
+          "flag": "--sk",
+          "long": true
+        },
+        {
+          "flag": "--shard-key",
+          "long": true
+        },
+        {
+          "flag": "--shardKey",
           "long": true
         }
       ],
-      "arg": null,
+      "arg": "sk",
       "command": null,
       "collectorType": null,
-      "type": "trump",
+      "type": null,
       "required": false,
       "minLength": null,
       "maxLength": null,
-      "help": "Hit the health endpoint for the service",
-      "trump": true
+      "help": "Ringpop shard key\n    Favor --sk and --shard-key. --shardKey is deprecated."
     },
     "jsonBody": {
       "flags": [
@@ -436,6 +419,23 @@
       "minLength": null,
       "maxLength": null,
       "help": "Application headers in JSON format.\n    Favor the --headers flag.\n    These flags are deprecated."
+    },
+    "health": {
+      "flags": [
+        {
+          "flag": "--health",
+          "long": true
+        }
+      ],
+      "arg": null,
+      "command": null,
+      "collectorType": null,
+      "type": "trump",
+      "required": false,
+      "minLength": null,
+      "maxLength": null,
+      "help": "Hit the health endpoint for the service",
+      "trump": true
     },
     "help": {
       "flags": [
