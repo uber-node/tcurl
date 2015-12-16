@@ -41,6 +41,7 @@ dump.rdb
 *.tap
 *.xml
 coverage/
+.nyc_output/
 
 # OS generated files #
 ######################

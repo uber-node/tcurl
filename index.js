@@ -22,7 +22,7 @@
 
 /*eslint no-console: [0] */
 /*eslint no-process-exit: [0] */
-/*eslint max-params: [2, 6] */
+/*eslint max-params: [2, 7] */
 /*eslint max-statements: [2, 40] */
 'use strict';
 
