@@ -336,7 +336,8 @@ TCurl.prototype.prepare = function prepare(opts, delegate) {
     }
 
     self.client = TChannel({
-        logger: DebugLogtron('tcurl')
+        logger: DebugLogtron('tcurl'),
+        trace: true
     });
 
     self.subChannel = self.client.makeSubChannel({
@@ -447,7 +448,7 @@ TCurl.prototype.asThrift = function asThrift(opts, request, delegate, done) {
 
     function onResponse(err, res, arg2, arg3) {
         done();
-        self.onResponse(err, res, arg2, arg3, opts, delegate);
+        self.onResponse(err, res, request, arg2, arg3, opts, delegate);
     }
 };
 
@@ -459,7 +460,7 @@ TCurl.prototype.asRaw = function asRaw(opts, request, delegate, done) {
 
     function onResponse(err, res, arg2, arg3) {
         done();
-        self.onResponse(err, res, arg2, arg3, opts, delegate);
+        self.onResponse(err, res, request, arg2, arg3, opts, delegate);
     }
 };
 
@@ -487,11 +488,11 @@ TCurl.prototype.asJSON = function asJSON(opts, request, delegate, done) {
 
     function onResponse(err, res, arg2, arg3) {
         done();
-        self.onResponse(err, res, arg2, arg3, opts, delegate);
+        self.onResponse(err, res, request, arg2, arg3, opts, delegate);
     }
 };
 
-TCurl.prototype.onResponse = function onResponse(err, res, arg2, arg3, opts, delegate) {
+TCurl.prototype.onResponse = function onResponse(err, res, request, arg2, arg3, opts, delegate) {
     if (typeof delegate.handleReponse === 'function') {
         delegate.handleReponse(err, res, arg2, arg3, opts);
     }
@@ -508,7 +509,7 @@ TCurl.prototype.onResponse = function onResponse(err, res, arg2, arg3, opts, del
         res.jsonBody = arg3;
     }
 
-    delegate.response(res, opts);
+    delegate.response(res, request, opts);
     return delegate.exit();
 };
 
