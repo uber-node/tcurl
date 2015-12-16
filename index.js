@@ -312,12 +312,14 @@ TCurl.prototype.findThriftEntryPoint = function findThriftEntryPoint(opts, deleg
         return null;
     }
     opts.thrift = path.resolve(opts.thrift);
+    var files;
     try {
-        var files = fs.readdirSync(opts.thrift);
+        files = fs.readdirSync(opts.thrift);
     } catch (err) {
         if (err.code === 'ENOTDIR') {
             return opts.thrift;
         }
+        return null;
     }
     var basename = opts.service + '.thrift';
     if (files.indexOf(basename) >= 0) {
