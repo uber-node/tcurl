@@ -135,7 +135,7 @@ test('getting an ok response with implied body', function t(assert) {
             '-p', hostname + ':' + port,
             serviceName,
             endpoint,
-            '-2', JSON.stringify(head),
+            '--headers', '[', '--some', 'echo-head', ']',
             '-j'
         ];
 
