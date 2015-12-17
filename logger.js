@@ -74,7 +74,7 @@ Logger.prototype.response = function response(res, req, opts) {
     }
 
     if (opts.raw) {
-        process.stdout.write(res.body);
+        process.stdout.write(res.arg3);
     } else {
         var last = req.outReqs[req.outReqs.length - 1];
         var traceid = last.tracing.traceid;
