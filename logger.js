@@ -74,7 +74,7 @@ Logger.prototype.response = function response(res, opts) {
     }
 
     if (opts.raw) {
-        process.stdout.write(res.body);
+        process.stdout.write(res.arg3);
     } else {
         console.log(JSON.stringify(res));
     }
