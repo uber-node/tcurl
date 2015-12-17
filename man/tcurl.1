@@ -1,11 +1,11 @@
-.TH "TCURL" "1" "November 2015" "v4.17.3" "tcurl"
+.TH "TCURL" "1" "December 2015" "v4.19.0" "tcurl"
 .SH "NAME"
 \fBtcurl\fR \- curl for tchannel
 .SH SYNOPSIS
 .P
 .RS 2
 .nf
-tcurl <service> <method> [<body> [<head>]]
+tcurl <service> <method> [<body>]
       [\-t | \-\-thrift | \-j | \-\-json | \-r | \-\-raw | \-\-http]
       [\-\-rate] [\-\-requests] [\-\-time] [\-\-delay]
       [\-\-timeout] [\-\-sk]
@@ -231,6 +231,25 @@ View the man page\.
 \fB\-v | \-\-version\fP
 .P
 Print the current version\.
+.SH FILES
+.P
+TCurl can be configured with default parameters using a either /etc/tcurlrc or
+.br
+a \.tcurlrc in the current working directory or any of its parent directories\.
+.br
+The rc file may be in INI or JSON format\.
+.P
+.RS 2
+.nf
+{
+    "hostlist": "/etc/ringpop/hosts\.json"
+}
+.fi
+.RE
+.P
+\fBhostlist\fP is the fully qualified path of a JSON file containing an array of
+.br
+host:port strings\.
 .SH EXIT CODES
 .RS 0
 .IP \(bu 2
