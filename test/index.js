@@ -24,5 +24,6 @@ require('./tcurl.js');
 require('./as-thrift.js');
 require('./as-json.js');
 require('./as-http.js');
+require('./as-raw.js');
 require('./health.js');
 require('./benchmark.js');

@@ -457,7 +457,8 @@ TCurl.prototype.asThrift = function asThrift(opts, request, delegate, done) {
 TCurl.prototype.asRaw = function asRaw(opts, request, delegate, done) {
     var self = this;
     request.headers.as = 'raw';
-    request.send(opts.endpoint, opts.jsonHead, opts.jsonBody,
+    var body = opts.jsonBody == null ? opts.body : opts.jsonBody;
+    request.send(opts.endpoint, null, body,
         onResponse);
 
     function onResponse(err, res, arg2, arg3) {
