@@ -54,6 +54,8 @@ Logger.prototype.error = function error(err) {
             'is not advertising to Hyperbahn.');
     }
 
+    self.exitCode = err.errorCode;
+
     console.log(JSON.stringify({
         ok: false,
         name: err.name,
