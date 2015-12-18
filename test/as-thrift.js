@@ -25,6 +25,7 @@
 var test = require('tape');
 var fs = require('fs');
 var path = require('path');
+var spawn = require('child_process').spawn;
 var tcurl = require('../index.js');
 var TChannel = require('tchannel');
 var TChannelAsThrift = require('tchannel/as/thrift.js');
@@ -331,6 +332,89 @@ test('use a thrift include', function t(assert) {
     }
 
 });
+
+test('getting an ok response with subprocess', function t(assert) {
+
+    var serviceName = 'meta';
+    var server = new TChannel({
+        serviceName: serviceName
+    });
+
+    var opts = {isOptions: true};
+    var hostname = '127.0.0.1';
+    var port;
+    var endpoint = 'Meta::health';
+
+    var tchannelAsThrift = TChannelAsThrift({
+        entryPoint: path.join(__dirname, '..', 'meta.thrift')
+    });
+    tchannelAsThrift.register(server, endpoint, opts, health);
+
+    function health(options, req, head, body, cb) {
+        assert.deepEqual(options, {
+            isOptions: true
+        }, 'handler receives options through registration');
+        assert.deepEqual(head, {
+            headerName: 'requestHeader'
+        }, 'handler receives request header from CLI');
+        assert.deepEqual(body, {}, 'handler receives body from CLI');
+        cb(null, {
+            ok: true,
+            head: {
+                headerName: 'responseHeader'
+            },
+            body: {
+                ok: true
+            }
+        });
+    }
+
+    function onServerListen() {
+        port = server.address().port;
+        onListening();
+    }
+
+    server.listen(0, hostname, onServerListen);
+
+    function onListening() {
+        var cmd = [
+            path.join(__dirname, '..', 'index.js'),
+            '-p', hostname + ':' + port,
+            serviceName,
+            endpoint,
+            '-t', path.join(__dirname, '..'),
+            '--headers', '[', '--headerName', 'requestHeader', ']'
+        ];
+
+        var proc = spawn('node', cmd);
+        proc.stdout.setEncoding('utf-8');
+        proc.stdout.on('data', onStdout);
+        proc.stderr.setEncoding('utf-8');
+        proc.stderr.on('data', onStderr);
+        proc.on('exit', onExit);
+
+        function onStdout(line) {
+            var res = JSON.parse(line);
+            assert.ok(res.ok, 'should be ok');
+            assert.deepEquals(res.head, {headerName: 'responseHeader'}, 'should include response head');
+            assert.deepEquals(res.headers, {as: 'thrift'}, 'should be as thrift');
+            var trace = parseInt(res.trace, 16);
+            assert.ok(trace === trace, 'trace is hexadecimal');
+        }
+
+        function onStderr(line) {
+            console.error(line);
+            assert.fail('no stderr expected');
+        }
+
+        function onExit(code) {
+            assert.equal(code, 0, 'exits with status 0');
+            server.close();
+            assert.end();
+        }
+    }
+});
+
 function ping(options, req, head, body, cb) {
     cb(null, {ok: true, head: {}, body: {pong: true}});
 }
