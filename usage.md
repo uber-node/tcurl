@@ -5,7 +5,7 @@
     tcurl <service> <method> [<body>]
           [-t | --thrift | -j | --json | -r | --raw | --http]
           [--rate] [--requests] [--time] [--delay]
-          [--timeout] [--sk]
+          [--timeout] [--sk] [--rd]
     tcurl <service> --health
     tcurl [-h | --help | -v | --version]
 
@@ -109,7 +109,15 @@ Use raw format (i.e. plain text) for request.
 Send an http request described in the form of tchannel.  For example:
 
     tcurl -p 127.0.0.1:21300 echoServer /echo
-        --http=POST 'Hello World!' [ --Accept text/plain ]
+        --http=POST 'Hello World!' --headers [ --Accept text/plain ]
+
+`--shard-key <sk>` or `--sk <sk>`
+
+Route to the worker that owns this key within a DHT.
+
+`--routing-delegate` or `--rd <rd>`
+
+Route through the delegated service.
 
 `--timeout <value>`
 

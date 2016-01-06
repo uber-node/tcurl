@@ -13,6 +13,8 @@ timeout: [--timeout <ms>] :quantity
 shardKey: [--sk|--shard-key|--shardKey <sk>]
     Ringpop shard key
     Favor --sk and --shard-key. --shardKey is deprecated.
+routingDelegate: [--rd|--routing-delegate <rd>]
+    Route through the delegated service
 requests: [--requests <count>] :quantity
     Number of requests to make
 rate: [--rate <rate>] :quantity

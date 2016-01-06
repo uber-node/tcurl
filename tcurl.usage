@@ -38,6 +38,8 @@ time: [--time <ms>] :quantity
 shardKey: [--sk|--shard-key|--shardKey <sk>]
     Ringpop shard key
     Favor --sk and --shard-key. --shardKey is deprecated.
+routingDelegate: [--rd|--routing-delegate <rd>]
+    Route through the delegated service
 jsonBody: [-3|--arg3|--body <body>]
     The body or argument in JSON format.
     Favor the use of <body> directly.

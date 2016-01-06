@@ -1,4 +1,4 @@
-.TH "TCURL" "1" "December 2015" "v4.19.0" "tcurl"
+.TH "TCURL" "1" "January 2016" "v4.19.1" "tcurl"
 .SH "NAME"
 \fBtcurl\fR \- curl for tchannel
 .SH SYNOPSIS
@@ -8,7 +8,7 @@
 tcurl <service> <method> [<body>]
       [\-t | \-\-thrift | \-j | \-\-json | \-r | \-\-raw | \-\-http]
       [\-\-rate] [\-\-requests] [\-\-time] [\-\-delay]
-      [\-\-timeout] [\-\-sk]
+      [\-\-timeout] [\-\-sk] [\-\-rd]
 tcurl <service> \-\-health
 tcurl [\-h | \-\-help | \-v | \-\-version]
 .fi
@@ -160,9 +160,17 @@ Send an http request described in the form of tchannel\.  For example:
 .RS 2
 .nf
 tcurl \-p 127\.0\.0\.1:21300 echoServer /echo
-    \-\-http=POST 'Hello World!' [ \-\-Accept text/plain ]
+    \-\-http=POST 'Hello World!' \-\-headers [ \-\-Accept text/plain ]
 .fi
 .RE
+.P
+\fB\-\-shard\-key <sk>\fP or \fB\-\-sk <sk>\fP
+.P
+Route to the worker that owns this key within a DHT\.
+.P
+\fB\-\-routing\-delegate\fP or \fB\-\-rd <rd>\fP
+.P
+Route through the delegated service\.
 .P
 \fB\-\-timeout <value>\fP
 .P
