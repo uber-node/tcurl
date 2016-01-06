@@ -21,7 +21,6 @@
 // THE SOFTWARE.
 
 /*eslint no-console: [0] */
-/*eslint no-process-exit: [0] */
 /*eslint max-params: [2, 7] */
 /*eslint max-statements: [2, 40] */
 'use strict';
@@ -111,6 +110,9 @@ function main(argv, delegate) {
     );
 
     config = parseArgs(config);
+    if (config === null) {
+        return shonDelegate.end();
+    }
 
     var tcurl = new TCurl();
 
@@ -178,8 +180,7 @@ function parseArgs(argv) {
         }
     } else {
         console.error('Must specify at least one peer with -p|--peer or -P|--peerlist');
-        help();
-        process.exit(-1);
+        return null;
     }
 
     var ip;
