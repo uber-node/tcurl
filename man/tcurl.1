@@ -1,4 +1,4 @@
-.TH "TCURL" "1" "January 2016" "v4.19.1" "tcurl"
+.TH "TCURL" "1" "January 2016" "v4.20.0" "tcurl"
 .SH "NAME"
 \fBtcurl\fR \- curl for tchannel
 .SH SYNOPSIS
@@ -163,6 +163,12 @@ tcurl \-p 127\.0\.0\.1:21300 echoServer /echo
     \-\-http=POST 'Hello World!' \-\-headers [ \-\-Accept text/plain ]
 .fi
 .RE
+.P
+\fB\-\-caller <cn>\fP or \fB\-\-cn <cn>\fP
+.P
+Fake an alternate caller service name\.
+.br
+The default is \fBtcurl\fP\|\.
 .P
 \fB\-\-shard\-key <sk>\fP or \fB\-\-sk <sk>\fP
 .P

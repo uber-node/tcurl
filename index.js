@@ -226,6 +226,7 @@ function parseArgs(argv) {
         head: argv.head,
         jsonHead: argv.jsonHead,
         jsonBody: argv.jsonBody,
+        callerName: argv.callerName || 'tcurl',
         shardKey: argv.shardKey,
         routingDelegate: argv.routingDelegate,
         service: service,

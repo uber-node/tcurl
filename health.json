@@ -10,6 +10,7 @@
     "[-p|--peer <peer>...]\n    The peer or peers to connect",
     "[-P|--peerlist|-H|--hostlist <path>]\n    The path to a file containing a JSON list of peers",
     "[--timeout <ms>] :quantity\n    Timeout in milliseconds",
+    "[--cn|--caller <cn>]\n    Fake an alternate caller service name, tcurl by default",
     "[--sk|--shard-key|--shardKey <sk>]\n    Ringpop shard key\n    Favor --sk and --shard-key. --shardKey is deprecated.",
     "[--rd|--routing-delegate <rd>]\n    Route through the delegated service",
     "[--requests <count>] :quantity\n    Number of requests to make",
@@ -118,6 +119,26 @@
       "minLength": null,
       "maxLength": null,
       "help": "Timeout in milliseconds"
+    },
+    "callerName": {
+      "flags": [
+        {
+          "flag": "--cn",
+          "long": true
+        },
+        {
+          "flag": "--caller",
+          "long": true
+        }
+      ],
+      "arg": "cn",
+      "command": null,
+      "collectorType": null,
+      "type": null,
+      "required": false,
+      "minLength": null,
+      "maxLength": null,
+      "help": "Fake an alternate caller service name, tcurl by default"
     },
     "shardKey": {
       "flags": [

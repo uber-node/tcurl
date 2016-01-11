@@ -35,6 +35,8 @@ delay: [--delay <ms>] :quantity
     Delay between requests in milliseconds
 time: [--time <ms>] :quantity
     Benchmark duration in milliseconds
+callerName: [--cn|--caller <cn>]
+    Fake an alternate caller service name, tcurl by default
 shardKey: [--sk|--shard-key|--shardKey <sk>]
     Ringpop shard key
     Favor --sk and --shard-key. --shardKey is deprecated.
