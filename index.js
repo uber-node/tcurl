@@ -21,7 +21,6 @@
 // THE SOFTWARE.
 
 /*eslint no-console: [0] */
-/*eslint no-process-exit: [0] */
 /*eslint max-params: [2, 7] */
 /*eslint max-statements: [2, 40] */
 'use strict';
@@ -111,6 +110,9 @@ function main(argv, delegate) {
     );
 
     config = parseArgs(config);
+    if (config === null) {
+        return shonDelegate.end();
+    }
 
     var tcurl = new TCurl();
 
@@ -178,25 +180,13 @@ function parseArgs(argv) {
         }
     } else {
         console.error('Must specify at least one peer with -p|--peer or -P|--peerlist');
-        help();
-        process.exit(-1);
+        return null;
     }
 
-    var ip;
-    function normalizePeer(address) {
-        if (!ip) {
-            ip = myLocalIp();
-        }
-        var parsedUri = url.parse('tchannel://' + address);
-        if (parsedUri.hostname === 'localhost') {
-            parsedUri.hostname = ip;
-        }
-        assert(parsedUri.hostname, 'host required');
-        assert(parsedUri.port, 'port required');
-        return parsedUri.hostname + ':' + parsedUri.port;
+    peers = validatePeers(peers);
+    if (peers === null) {
+        return null;
     }
-
-    peers = peers.map(normalizePeer);
 
     if (!health && !endpoint) {
         console.error('Please specify an endpoint or --health');
@@ -243,6 +233,29 @@ function parseArgs(argv) {
         delay: argv.delay,
         rate: argv.rate
     };
+}
+
+function validatePeers(peers) {
+    var ip;
+    if (peers.length) {
+        ip = myLocalIp();
+    }
+    for (var i = 0; i < peers.length; i++) {
+        var peer = url.parse('tchannel://' + peers[i]);
+        if (peer.hostname === 'localhost') {
+            peer.hostname = ip;
+        }
+        if (!peer.hostname) {
+            console.error('Host required for peer: ' + JSON.stringify(peers[i]));
+            return null;
+        }
+        if (!peer.port) {
+            console.error('Port required for peer: ' + JSON.stringify(peers[i]));
+            return null;
+        }
+        peers[i] = peer.hostname + ':' + peer.port;
+    }
+    return peers;
 }
 
 function parsePeerlist(peerlist) {
