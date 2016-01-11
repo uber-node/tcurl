@@ -11,6 +11,7 @@
     "[-P|--peerlist|-H|--hostlist <path>]\n    The path to a file containing a JSON list of peers",
     "[--timeout <ms>] :quantity\n    Timeout in milliseconds",
     "[--sk|--shard-key|--shardKey <sk>]\n    Ringpop shard key\n    Favor --sk and --shard-key. --shardKey is deprecated.",
+    "[--rd|--routing-delegate <rd>]\n    Route through the delegated service",
     "[--requests <count>] :quantity\n    Number of requests to make",
     "[--rate <rate>] :quantity\n    Request rate in requests per second",
     "[--delay <ms>] :quantity\n    Delay between requests in milliseconds",
@@ -141,6 +142,26 @@
       "minLength": null,
       "maxLength": null,
       "help": "Ringpop shard key\n    Favor --sk and --shard-key. --shardKey is deprecated."
+    },
+    "routingDelegate": {
+      "flags": [
+        {
+          "flag": "--rd",
+          "long": true
+        },
+        {
+          "flag": "--routing-delegate",
+          "long": true
+        }
+      ],
+      "arg": "rd",
+      "command": null,
+      "collectorType": null,
+      "type": null,
+      "required": false,
+      "minLength": null,
+      "maxLength": null,
+      "help": "Route through the delegated service"
     },
     "requests": {
       "flags": [

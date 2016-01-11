@@ -227,6 +227,7 @@ function parseArgs(argv) {
         jsonHead: argv.jsonHead,
         jsonBody: argv.jsonBody,
         shardKey: argv.shardKey,
+        routingDelegate: argv.routingDelegate,
         service: service,
         endpoint: endpoint,
         peers: peers,
@@ -356,7 +357,13 @@ TCurl.prototype.prepare = function prepare(opts, delegate) {
 
 TCurl.prototype.createRequest = function createRequest(opts) {
     var self = this;
-    var headers = opts.shardKey ? {sk: opts.shardKey} : {};
+    var headers = {};
+    if (opts.shardKey) {
+        headers.sk = opts.shardKey;
+    }
+    if (opts.routingDelegate) {
+        headers.rd = opts.routingDelegate;
+    }
     return self.subChannel.request({
         timeout: opts.timeout || 100,
         hasNoParent: true,
