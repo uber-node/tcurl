@@ -111,6 +111,11 @@ Send an http request described in the form of tchannel.  For example:
     tcurl -p 127.0.0.1:21300 echoServer /echo
         --http=POST 'Hello World!' --headers [ --Accept text/plain ]
 
+`--caller <cn>` or `--cn <cn>`
+
+Fake an alternate caller service name.
+The default is `tcurl`.
+
 `--shard-key <sk>` or `--sk <sk>`
 
 Route to the worker that owns this key within a DHT.

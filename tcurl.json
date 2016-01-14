@@ -21,6 +21,7 @@
     "[--rate <rate>] :quantity\n    Request rate in requests per second",
     "[--delay <ms>] :quantity\n    Delay between requests in milliseconds",
     "[--time <ms>] :quantity\n    Benchmark duration in milliseconds",
+    "[--cn|--caller <cn>]\n    Fake an alternate caller service name, tcurl by default",
     "[--sk|--shard-key|--shardKey <sk>]\n    Ringpop shard key\n    Favor --sk and --shard-key. --shardKey is deprecated.",
     "[--rd|--routing-delegate <rd>]\n    Route through the delegated service",
     "[-3|--arg3|--body <body>]\n    The body or argument in JSON format.\n    Favor the use of <body> directly.\n    These flags are deprecated.",
@@ -348,6 +349,26 @@
       "minLength": null,
       "maxLength": null,
       "help": "Benchmark duration in milliseconds"
+    },
+    "callerName": {
+      "flags": [
+        {
+          "flag": "--cn",
+          "long": true
+        },
+        {
+          "flag": "--caller",
+          "long": true
+        }
+      ],
+      "arg": "cn",
+      "command": null,
+      "collectorType": null,
+      "type": null,
+      "required": false,
+      "minLength": null,
+      "maxLength": null,
+      "help": "Fake an alternate caller service name, tcurl by default"
     },
     "shardKey": {
       "flags": [

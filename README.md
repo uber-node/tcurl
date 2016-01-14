@@ -37,9 +37,14 @@ Sends one or more TChannel requests.
     Where to find Thrift IDL files.
   [--no-strict]
     Disable strict Thrift parsing.
+  [--cn|--caller <cn>]
+    Fake an alternate caller service name.
+    tcurl is the default.
   [--sk|--shard-key <sk>]
     Ringpop shard key
     The --shardKey flag is deprecated.
+  [--rd|--routing-delegate <rd>]
+    Forward to the given service for application-specific routing.
   [--timeout <ms>]
     Timeout in milliseconds
   [--requests <count>]
