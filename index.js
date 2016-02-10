@@ -101,6 +101,9 @@ function main(argv, delegate) {
         delegate = delegate || new HealthLogger();
         config.thrift = path.join(__dirname, 'meta.thrift');
         config.endpoint = 'Meta::health';
+        config.traceSample = 0;
+    } else {
+        config.traceSample = 1;
     }
 
     config = extend(
@@ -232,7 +235,8 @@ function parseArgs(argv) {
         time: argv.time,
         requests: argv.requests,
         delay: argv.delay,
-        rate: argv.rate
+        rate: argv.rate,
+        traceSample: argv.traceSample
     };
 }
 
@@ -354,7 +358,8 @@ TCurl.prototype.prepare = function prepare(opts, delegate) {
 
     self.client = TChannel({
         logger: DebugLogtron('tcurl'),
-        trace: true
+        trace: true,
+        traceSample: opts.traceSample
     });
 
     self.subChannel = self.client.makeSubChannel({
@@ -382,7 +387,8 @@ TCurl.prototype.createRequest = function createRequest(opts) {
         timeout: opts.timeout || 100,
         hasNoParent: true,
         serviceName: opts.service,
-        headers: headers
+        headers: headers,
+        traceSample: opts.traceSample
     });
 };
 
