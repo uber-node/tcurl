@@ -42,7 +42,7 @@
     "opn": "^1.0.1",
     "ready-signal": "^1.2.0",
     "tape": "^3.4.0",
-    "uber-licence": "1.5.1"
+    "uber-licence": "^2.0.0"
   },
   "licenses": [
     {
