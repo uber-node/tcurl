@@ -246,3 +246,74 @@ test('timeouts work', function t(assert) {
         });
     }
 });
+
+function returnCaller(opts, req, head, body, cb) {
+    cb(null, {
+        ok: true,
+        head: null,
+        body: {
+            callerName: req.callerName,
+            serviceName: req.serviceName
+       }
+    });
+}
+
+test('caller sets cn', function t(assert) {
+    var server = new TChannel({
+        serviceName: 'server'
+    });
+    var opts = {};
+
+    var hostname = '127.0.0.1';
+    var port;
+    var endpoint = 'returnCaller';
+    var head = {some: 'echo-head'};
+    var body = {some: 'body'};
+    var serviceName = 'server';
+    var overrideCaller = 'override-caller';
+
+    var tchannelJSON = TChannelJSON();
+    tchannelJSON.register(server, endpoint, opts, returnCaller);
+
+    function onServerListen() {
+        port = server.address().port;
+        onListening();
+    }
+
+    server.listen(0, hostname, onServerListen);
+
+    function onListening() {
+        var cmd = [
+            '-p', hostname + ':' + port,
+            serviceName,
+            endpoint,
+            '-2', JSON.stringify(head),
+            '-3', JSON.stringify(body),
+            '--caller', overrideCaller,
+            '-j'
+        ];
+
+        tcurl.exec(cmd, {
+            error: function error(err) {
+                assert.ifError(err);
+            },
+            response: function response(res) {
+                assert.deepEqual(res, {
+                    ok: true,
+                    head: null,
+                    body: {
+                        callerName: overrideCaller,
+                        serviceName: serviceName
+                    },
+                    headers: {
+                        'as': 'json'
+                    }
+                });
+            },
+            exit: function exit() {
+                server.close();
+                assert.end();
+            }
+        });
+    }
+});
