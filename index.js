@@ -382,6 +382,9 @@ TCurl.prototype.createRequest = function createRequest(opts) {
     if (opts.routingDelegate) {
         headers.rd = opts.routingDelegate;
     }
+    if (opts.callerName) {
+        headers.cn = opts.callerName;
+    }
     return self.subChannel.request({
         timeout: opts.timeout || 100,
         hasNoParent: true,
