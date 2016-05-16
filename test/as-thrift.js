@@ -43,7 +43,8 @@ test('getting an ok response', function t(assert) {
     var endpoint = 'Meta::health';
 
     var tchannelAsThrift = TChannelAsThrift({
-        entryPoint: path.join(__dirname, '..', 'meta.thrift')
+        entryPoint: path.join(__dirname, '..', 'meta.thrift'),
+        allowOptionalArguments: true
     });
     tchannelAsThrift.register(server, endpoint, opts, health);
 
@@ -283,7 +284,8 @@ test('use a thrift include', function t(assert) {
     var userName = 'Bob';
 
     var tchannelAsThrift = TChannelAsThrift({
-        entryPoint: path.join(__dirname, 'users.thrift')
+        entryPoint: path.join(__dirname, 'users.thrift'),
+        allowOptionalArguments: true
     });
     tchannelAsThrift.register(server, endpoint, opts, getUser);
 

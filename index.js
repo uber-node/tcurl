@@ -437,6 +437,7 @@ TCurl.prototype.asThrift = function asThrift(opts, request, delegate, done) {
     try {
         sender = new TChannelAsThrift({
             entryPoint: entryPoint,
+            allowOptionalArguments: true,
             strict: opts.strict
         });
     } catch (err) {

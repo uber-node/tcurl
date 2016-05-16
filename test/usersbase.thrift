@@ -5,5 +5,5 @@ struct User {
 }
 
 service UsersBase {
-    User getUser(1: string name)
+    User getUser(1: optional string name)
 }
