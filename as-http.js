@@ -68,7 +68,7 @@ TCurlAsHttp.prototype.send = function send() {
         }
         self.done();
         self.logger.log(hres.statusCode);
-        self.logger.response(hres.body);
+        self.logger.log(hres.body);
         self.logger.exit();
     }
 };

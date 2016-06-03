@@ -110,9 +110,11 @@ test('getting an ok response', function t(assert) {
             '-3', JSON.stringify(body)
         ];
 
+        var out = [];
+
         tcurl.exec(cmd, {
-            log: function log(statusCode) {
-                this.statusCode = statusCode;
+            log: function log(line) {
+                out.push(line);
             },
             response: function response(res) {
                 assert.equals(res.toString(), 'Hello Test', 'response should equal');
@@ -121,7 +123,7 @@ test('getting an ok response', function t(assert) {
                 assert.ifError(err);
             },
             exit: function exit(err) {
-                assert.equal(this.statusCode, 200, 'status code should be 200');
+                assert.deepEqual(out, [200, 'Hello Test'], 'output should include status code and response');
                 server.close();
                 httpServer.close();
                 assert.end(err);
