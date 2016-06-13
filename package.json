@@ -39,7 +39,7 @@
     "format-stack": "4.0.0",
     "itape": "^1.5.0",
     "marked-man": "^0.1.5",
-    "nyc": "^5.0.1",
+    "nyc": "4.0.1",
     "opn": "^1.0.1",
     "ready-signal": "^1.2.0",
     "tape": "^3.4.0",
