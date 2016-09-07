@@ -10,6 +10,8 @@
 
 A command line utility for sending requests to TChannel services.
 
+(**This project is no longer under active development.** Check out [yab](https://github.com/yarpc/yab) instead.)
+
 ```
 usage: tcurl <service> [--health | <method> [<body>]]
 Sends one or more TChannel requests.
