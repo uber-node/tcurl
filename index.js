@@ -65,6 +65,10 @@ var healthCommand = require('./health.json');
 
 // delegate implements error(message, err), response(res), exit()
 function main(argv, delegate) {
+    console.error(
+        'YAB IS THE NEW TCURL! https://github.com/yarpc/yab ' +
+        '(replace tcurl with yab and most commands just work)\n'
+    );
 
     var args = ['tcurl'].concat(argv);
     var cursor = new ShonCursor(args, 1);

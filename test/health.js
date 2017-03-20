@@ -247,6 +247,9 @@ test('test healthy endpoint with subprocess', function t(assert) {
             assert.equal(line, 'OK\n', 'expected stdout');
         }
         function onStderr(line) {
+            if (line === '' || line.lastIndexOf('YAB IS THE NEW TCURL', 0) === 0) {
+                return;
+            }
             console.error(line);
             assert.fail('no stderr expected');
         }
@@ -302,6 +305,9 @@ test('test un-healthy endpoint with subprocess', function t(assert) {
             out.push(line);
         }
         function onStderr(line) {
+            if (line === '' || line.lastIndexOf('YAB IS THE NEW TCURL', 0) === 0) {
+                return;
+            }
             console.error(line);
             assert.fail('no stderr expected');
         }

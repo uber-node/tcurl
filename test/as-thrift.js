@@ -405,6 +405,9 @@ test('getting an ok response with subprocess', function t(assert) {
         }
 
         function onStderr(line) {
+            if (line === '' || line.lastIndexOf('YAB IS THE NEW TCURL', 0) === 0) {
+                return;
+            }
             console.error(line);
             assert.fail('no stderr expected');
         }
