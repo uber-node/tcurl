@@ -170,6 +170,9 @@ test('getting an ok response with subprocess', function t(assert) {
         }
 
         function onStderr(line) {
+            if (line === '' || line.lastIndexOf('YAB IS THE NEW TCURL', 0) === 0) {
+                return;
+            }
             console.error(line);
             assert.fail('no stderr expected');
         }
@@ -234,8 +237,11 @@ test('getting a bad request response with subprocess', function t(assert) {
         }
 
         function onStderr(line) {
+            if (line === '' || line.lastIndexOf('YAB IS THE NEW TCURL', 0) === 0) {
+                return;
+            }
             assert.equals(line, 'TchannelBadRequestError: no such endpoint ' +
-                'service="server" endpoint="echo"\n', 'should log error message')
+                'service="server" endpoint="echo"\n', 'should log error message');
             erred = true;
         }
 
