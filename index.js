@@ -106,7 +106,7 @@ function main(argv, delegate) {
         config.endpoint = 'Meta::health';
         config.traceSample = 0;
     } else {
-        config.traceSample = 1;
+        config.traceSample = 0;
     }
 
     config = extend(
