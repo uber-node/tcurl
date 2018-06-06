@@ -104,10 +104,10 @@ function main(argv, delegate) {
         delegate = delegate || new HealthLogger();
         config.thrift = path.join(__dirname, 'meta.thrift');
         config.endpoint = 'Meta::health';
-        config.traceSample = 0;
-    } else {
-        config.traceSample = 1;
     }
+
+    // In all cases, do not trace. Use yab for debug tracing.
+    config.traceSample = 0;
 
     config = extend(
         rc('tcurl', {}, config),

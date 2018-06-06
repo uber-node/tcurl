@@ -77,12 +77,6 @@ Logger.prototype.response = function response(res, req, opts) {
     if (opts.raw) {
         process.stdout.write(res.arg3);
     } else {
-        var last = req.outReqs[req.outReqs.length - 1];
-        var traceid = last.tracing.traceid;
-        var trace = new Buffer(8);
-        trace.writeUInt32BE(traceid[0], 0, 4, true);
-        trace.writeUInt32BE(traceid[1], 4, 4, true);
-        res.trace = trace.toString('hex');
         console.log(JSON.stringify(res));
     }
 };

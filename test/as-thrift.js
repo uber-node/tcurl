@@ -400,8 +400,7 @@ test('getting an ok response with subprocess', function t(assert) {
             assert.ok(res.ok, 'should be ok');
             assert.deepEquals(res.head, {headerName: 'responseHeader'}, 'should include response head');
             assert.deepEquals(res.headers, {as: 'thrift'}, 'should be as thrift');
-            var trace = parseInt(res.trace, 16);
-            assert.ok(trace === trace, 'trace is hexadecimal');
+            assert.notOk(res.trace);
         }
 
         function onStderr(line) {
