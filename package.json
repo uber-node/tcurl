@@ -20,7 +20,7 @@
     }
   ],
   "dependencies": {
-    "camelcase-keys": "^4.2.0",
+    "camelcase-keys": "^1.0.0",
     "debug-logtron": "^5.2.0",
     "my-local-ip": "^1.0.0",
     "process": "^0.11.0",
@@ -35,11 +35,11 @@
   },
   "devDependencies": {
     "coveralls": "^3.0.1",
-    "eslint": "^4.19.1",
+    "eslint": "^1.9.1",
     "format-stack": "4.1.1",
     "itape": "^1.5.0",
     "marked-man": "^0.2.1",
-    "nyc": "12.0.2",
+    "nyc": "6.4.4",
     "opn": "^5.3.0",
     "ready-signal": "^1.2.0",
     "tape": "^4.9.0",
