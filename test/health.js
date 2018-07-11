@@ -313,7 +313,7 @@ test('test un-healthy endpoint with subprocess', function t(assert) {
         }
 
         function onExit(code) {
-            assert.deepEqual(out, ['NOT OK\n', 'having a bad day!\n'], 'expected stdout');
+            assert.deepEqual(out.join(''), 'NOT OK\nhaving a bad day!\n', 'expected stdout');
             server.close();
             assert.equal(code, 124, 'exits with status 124');
             assert.end();
